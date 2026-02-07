@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Question } from '@/lib/types';
+import { Question, Option } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface QuestionEditorProps {
@@ -33,9 +32,11 @@ export const QuestionEditor = ({
   // Track if question content has changed
   useEffect(() => {
     const hasTextChanges = 
-      question.question !== originalRef.current.question ||
-      question.correct_answer !== originalRef.current.correct_answer ||
-      question.options.some((opt, i) => opt !== originalRef.current.options[i]);
+      question.text !== originalRef.current.text ||
+      question.options.some((opt, i) => 
+        opt.text !== originalRef.current.options[i]?.text ||
+        opt.isCorrect !== originalRef.current.options[i]?.isCorrect
+      );
     setHasChanges(hasTextChanges);
   }, [question]);
 
@@ -48,19 +49,25 @@ export const QuestionEditor = ({
   }, [isSaved, isGenerating, question]);
 
   const handleQuestionTextChange = (text: string) => {
-    onUpdate({ ...question, question: text });
+    onUpdate({ ...question, text });
   };
 
-  const handleOptionTextChange = (optionIndex: number, text: string) => {
-    const newOptions = [...question.options];
-    newOptions[optionIndex] = text;
-    onUpdate({ ...question, options: newOptions });
+  const handleOptionTextChange = (optionId: string, text: string) => {
+    onUpdate({
+      ...question,
+      options: question.options.map((opt) =>
+        opt.id === optionId ? { ...opt, text } : opt
+      ),
+    });
   };
 
-  const handleCorrectOptionChange = (optionIndex: number) => {
+  const handleCorrectOptionChange = (optionId: string) => {
     const updatedQuestion = {
       ...question,
-      correct_answer: optionIndex,
+      options: question.options.map((opt) => ({
+        ...opt,
+        isCorrect: opt.id === optionId,
+      })),
     };
     onUpdate(updatedQuestion);
     // Immediately save when correct answer changes
@@ -73,7 +80,7 @@ export const QuestionEditor = ({
     }
   };
 
-  const optionLabels = ['A', 'B', 'C', 'D'];
+  const optionLabels = ['A', 'B', 'C'];
   const isNewQuestion = question.isNew;
 
   return (
@@ -131,82 +138,51 @@ export const QuestionEditor = ({
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor={`question-${question.id}`}>Question Text</Label>
-          <Textarea
+          <Input
             id={`question-${question.id}`}
-            value={question.question}
+            value={question.text}
             onChange={(e) => handleQuestionTextChange(e.target.value)}
             onBlur={handleBlur}
             placeholder="Enter question text..."
             disabled={isGenerating}
-            rows={2}
           />
         </div>
 
         <div className="space-y-3">
           <Label>Answer Options</Label>
-          {question.options.map((option, optIndex) => {
-            const isCorrect = question.correct_answer === optIndex;
-            return (
-              <div key={optIndex} className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleCorrectOptionChange(optIndex)}
-                  disabled={isGenerating}
-                  className={cn(
-                    'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all font-medium text-sm',
-                    isCorrect
-                      ? 'border-success bg-success text-success-foreground'
-                      : 'border-border hover:border-primary/50 text-muted-foreground',
-                    isGenerating && 'opacity-50 cursor-not-allowed'
-                  )}
-                >
-                  {isCorrect ? (
-                    <Check className="h-4 w-4" />
-                  ) : (
-                    optionLabels[optIndex]
-                  )}
-                </button>
-                <Input
-                  value={option}
-                  onChange={(e) => handleOptionTextChange(optIndex, e.target.value)}
-                  onBlur={handleBlur}
-                  placeholder={`Option ${optionLabels[optIndex]}...`}
-                  className="flex-1"
-                  disabled={isGenerating}
-                />
-              </div>
-            );
-          })}
+          {question.options.map((option, optIndex) => (
+            <div key={option.id} className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleCorrectOptionChange(option.id)}
+                disabled={isGenerating}
+                className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all font-medium text-sm',
+                  option.isCorrect
+                    ? 'border-success bg-success text-success-foreground'
+                    : 'border-border hover:border-primary/50 text-muted-foreground',
+                  isGenerating && 'opacity-50 cursor-not-allowed'
+                )}
+              >
+                {option.isCorrect ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  optionLabels[optIndex]
+                )}
+              </button>
+              <Input
+                value={option.text}
+                onChange={(e) => handleOptionTextChange(option.id, e.target.value)}
+                onBlur={handleBlur}
+                placeholder={`Option ${optionLabels[optIndex]}...`}
+                className="flex-1"
+                disabled={isGenerating}
+              />
+            </div>
+          ))}
           <p className="text-xs text-muted-foreground">
             Click the letter to mark the correct answer • Changes auto-save on blur
           </p>
-        </div>
-
-        {/* Explanation field */}
-        <div className="space-y-2">
-          <Label htmlFor={`explanation-${question.id}`}>Explanation</Label>
-          <Textarea
-            id={`explanation-${question.id}`}
-            value={question.explanation}
-            onChange={(e) => onUpdate({ ...question, explanation: e.target.value })}
-            onBlur={handleBlur}
-            placeholder="Why is this the correct answer..."
-            disabled={isGenerating}
-            rows={2}
-          />
-        </div>
-
-        {/* Reference field */}
-        <div className="space-y-2">
-          <Label htmlFor={`reference-${question.id}`}>Reference</Label>
-          <Input
-            id={`reference-${question.id}`}
-            value={question.reference}
-            onChange={(e) => onUpdate({ ...question, reference: e.target.value })}
-            onBlur={handleBlur}
-            placeholder="e.g., [DANGER] Fall Hazard"
-            disabled={isGenerating}
-          />
         </div>
       </CardContent>
     </Card>

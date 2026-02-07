@@ -149,55 +149,38 @@ const PresentationMode = () => {
             </div>
             
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-12 leading-tight">
-              {currentQuestion.question}
+              {currentQuestion.text}
             </h2>
 
             <div className="grid gap-4">
-              {currentQuestion.options.map((option, index) => {
-                const isCorrect = currentQuestion.correct_answer === index;
-                return (
-                  <div
-                    key={index}
-                    className={cn(
-                      "flex items-center gap-6 p-6 rounded-2xl border-2 transition-all",
-                      showAnswer && isCorrect
-                        ? "border-success bg-success/10"
-                        : "border-border bg-card"
+              {currentQuestion.options.map((option, index) => (
+                <div
+                  key={option.id}
+                  className={cn(
+                    "flex items-center gap-6 p-6 rounded-2xl border-2 transition-all",
+                    showAnswer && option.isCorrect
+                      ? "border-success bg-success/10"
+                      : "border-border bg-card"
+                  )}
+                >
+                  <span className={cn(
+                    "flex items-center justify-center w-14 h-14 rounded-xl text-xl font-bold shrink-0",
+                    showAnswer && option.isCorrect
+                      ? "bg-success text-success-foreground"
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {showAnswer && option.isCorrect ? (
+                      <CheckCircle2 className="h-7 w-7" />
+                    ) : (
+                      optionLabels[index]
                     )}
-                  >
-                    <span className={cn(
-                      "flex items-center justify-center w-14 h-14 rounded-xl text-xl font-bold shrink-0",
-                      showAnswer && isCorrect
-                        ? "bg-success text-success-foreground"
-                        : "bg-muted text-muted-foreground"
-                    )}>
-                      {showAnswer && isCorrect ? (
-                        <CheckCircle2 className="h-7 w-7" />
-                      ) : (
-                        optionLabels[index]
-                      )}
-                    </span>
-                    <span className="text-2xl md:text-3xl text-foreground">
-                      {option}
-                    </span>
-                  </div>
-                );
-              })}
+                  </span>
+                  <span className="text-2xl md:text-3xl text-foreground">
+                    {option.text}
+                  </span>
+                </div>
+              ))}
             </div>
-
-            {/* Explanation (shown when answer is revealed) */}
-            {showAnswer && currentQuestion.explanation && (
-              <div className="mt-8 p-6 rounded-2xl bg-muted/50 border border-border">
-                <p className="text-lg text-muted-foreground">
-                  <strong className="text-foreground">Explanation:</strong> {currentQuestion.explanation}
-                </p>
-                {currentQuestion.reference && (
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Reference: {currentQuestion.reference}
-                  </p>
-                )}
-              </div>
-            )}
 
             {/* Show Answer Toggle */}
             <div className="mt-10 text-center">

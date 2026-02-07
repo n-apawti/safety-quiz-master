@@ -64,8 +64,6 @@ export const addQuizToManual = async (config: AddQuizConfig): Promise<Quiz> => {
   const newQuiz: Quiz = {
     id: `quiz-${Date.now()}`,
     name: config.quizName,
-    manual_path: './manual.pdf',
-    warnings: [],
     questions,
   };
   
@@ -145,6 +143,8 @@ export const generateQuestionAssets = async (
   // Generate video URLs for the new question
   const updatedQuestion: Question = {
     ...question,
+    failureVideoUrl: `https://example.com/videos/failure-${Date.now()}.mp4`,
+    successVideoUrl: `https://example.com/videos/success-${Date.now()}.mp4`,
     isNew: false, // Mark as no longer new after generation
   };
   
@@ -185,6 +185,8 @@ export const updateQuestion = async (
   // Generate new video URLs to simulate regeneration
   const updatedQuestion: Question = {
     ...question,
+    failureVideoUrl: `https://example.com/videos/failure-${Date.now()}.mp4`,
+    successVideoUrl: `https://example.com/videos/success-${Date.now()}.mp4`,
   };
   
   manuals = manuals.map(manual => {

@@ -7,13 +7,13 @@ import { Progress } from '@/components/ui/progress';
 import { WrongAnswerSection } from '@/components/WrongAnswerSection';
 import { CorrectAnswerSection } from '@/components/CorrectAnswerSection';
 import { fetchQuizById } from '@/lib/api';
-import { Quiz } from '@/lib/types';
+import { Quiz, Option } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 type AnswerState = 'unanswered' | 'correct' | 'incorrect';
 
 interface QuestionState {
-  selectedOptionIndex: number | null;
+  selectedOptionId: string | null;
   answerState: AnswerState;
 }
 
@@ -36,7 +36,7 @@ const QuizPlayer = () => {
           setQuiz(result.quiz);
           setQuestionStates(
             result.quiz.questions.map(() => ({
-              selectedOptionIndex: null,
+              selectedOptionId: null,
               answerState: 'unanswered',
             }))
           );
@@ -55,14 +55,14 @@ const QuizPlayer = () => {
   const currentState = questionStates[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / (quiz?.questions.length || 1)) * 100;
 
-  const handleOptionSelect = (optionIndex: number) => {
-    if (currentState?.answerState !== 'unanswered' || !currentQuestion) return;
+  const handleOptionSelect = (option: Option) => {
+    if (currentState?.answerState !== 'unanswered') return;
 
-    const isCorrect = optionIndex === currentQuestion.correct_answer;
+    const isCorrect = option.isCorrect;
     const newStates = [...questionStates];
     newStates[currentQuestionIndex] = {
       ...newStates[currentQuestionIndex],
-      selectedOptionIndex: optionIndex,
+      selectedOptionId: option.id,
       answerState: isCorrect ? 'correct' : 'incorrect',
     };
     setQuestionStates(newStates);
@@ -79,14 +79,14 @@ const QuizPlayer = () => {
   const handleRetry = () => {
     const newStates = [...questionStates];
     newStates[currentQuestionIndex] = {
-      selectedOptionIndex: null,
+      selectedOptionId: null,
       answerState: 'unanswered',
     };
     setQuestionStates(newStates);
   };
 
   const correctCount = questionStates.filter((s) => s.answerState === 'correct').length;
-  const optionLabels = ['A', 'B', 'C', 'D'];
+  const optionLabels = ['A', 'B', 'C'];
 
   if (isLoading) {
     return (
@@ -138,7 +138,7 @@ const QuizPlayer = () => {
                   setCurrentQuestionIndex(0);
                 setQuestionStates(
                     quiz.questions.map(() => ({
-                      selectedOptionIndex: null,
+                      selectedOptionId: null,
                       answerState: 'unanswered',
                     }))
                   );
@@ -192,7 +192,7 @@ const QuizPlayer = () => {
                 {currentQuestionIndex + 1}
               </span>
               <CardTitle className="text-xl leading-relaxed pt-1">
-                {currentQuestion?.question}
+                {currentQuestion?.text}
               </CardTitle>
             </div>
           </CardHeader>
@@ -200,19 +200,18 @@ const QuizPlayer = () => {
             {/* Options */}
             <div className="space-y-3">
               {currentQuestion?.options.map((option, index) => {
-                const isSelected = currentState?.selectedOptionIndex === index;
-                const isCorrectOption = currentQuestion.correct_answer === index;
+                const isSelected = currentState?.selectedOptionId === option.id;
                 // Only show correct highlight if user got it right
                 const showCorrect =
-                  currentState?.answerState === 'correct' && isCorrectOption;
+                  currentState?.answerState === 'correct' && option.isCorrect;
                 // Show incorrect highlight only for the selected wrong option
                 const showIncorrect =
                   currentState?.answerState === 'incorrect' && isSelected;
 
                 return (
                   <button
-                    key={index}
-                    onClick={() => handleOptionSelect(index)}
+                    key={option.id}
+                    onClick={() => handleOptionSelect(option)}
                     disabled={currentState?.answerState !== 'unanswered'}
                     className={cn(
                       'w-full flex items-center gap-4 p-4 rounded-lg border-2 text-left transition-all',
@@ -244,26 +243,17 @@ const QuizPlayer = () => {
                         optionLabels[index]
                       )}
                     </span>
-                    <span className="flex-1 font-medium">{option}</span>
+                    <span className="flex-1 font-medium">{option.text}</span>
                   </button>
                 );
               })}
             </div>
 
-            {/* Explanation when correct */}
-            {currentState?.answerState === 'correct' && currentQuestion?.explanation && (
-              <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-                <p className="text-sm text-muted-foreground">
-                  <strong className="text-foreground">Explanation:</strong> {currentQuestion.explanation}
-                </p>
-              </div>
-            )}
-
             {/* Feedback Sections */}
             {currentState?.answerState === 'correct' && (
               <CorrectAnswerSection
-                failureVideoUrl=""
-                successVideoUrl=""
+                failureVideoUrl={currentQuestion?.failureVideoUrl || ''}
+                successVideoUrl={currentQuestion?.successVideoUrl || ''}
                 isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
                 onNext={handleNext}
               />
@@ -271,8 +261,8 @@ const QuizPlayer = () => {
 
             {currentState?.answerState === 'incorrect' && (
               <WrongAnswerSection
-                failureVideoUrl=""
-                successVideoUrl=""
+                failureVideoUrl={currentQuestion?.failureVideoUrl || ''}
+                successVideoUrl={currentQuestion?.successVideoUrl || ''}
                 onRetry={handleRetry}
               />
             )}
