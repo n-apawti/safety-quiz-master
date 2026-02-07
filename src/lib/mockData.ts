@@ -78,7 +78,8 @@ const generateMockQuestions = (count: number, quizIndex: number): Question[] => 
         text: opt.text,
         isCorrect: opt.isCorrect,
       })),
-      videoUrl: `https://example.com/videos/explanation-${quizIndex}-${i}.mp4`,
+      failureVideoUrl: `https://example.com/videos/failure-${quizIndex}-${i}.mp4`,
+      successVideoUrl: `https://example.com/videos/success-${quizIndex}-${i}.mp4`,
     };
   });
 };

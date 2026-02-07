@@ -6,13 +6,15 @@ import { Label } from '@/components/ui/label';
 import { ExplanationVideo } from './ExplanationVideo';
 
 interface CorrectAnswerSectionProps {
-  videoUrl: string;
+  failureVideoUrl: string;
+  successVideoUrl: string;
   isLastQuestion: boolean;
   onNext: () => void;
 }
 
 export const CorrectAnswerSection = ({
-  videoUrl,
+  failureVideoUrl,
+  successVideoUrl,
   isLastQuestion,
   onNext,
 }: CorrectAnswerSectionProps) => {
@@ -41,14 +43,19 @@ export const CorrectAnswerSection = ({
         </Button>
         {!showVideo && (
           <Button variant="outline" onClick={() => setShowVideo(true)}>
-            Watch Explanation (Optional)
+            View Explanation (Optional)
           </Button>
         )}
       </div>
 
-      {/* Optional Video Section */}
+      {/* Optional Video Section - Same layout as wrong answer */}
       {showVideo && (
-        <div className="space-y-3">
+        <div className="rounded-xl border-2 border-muted bg-muted/5 p-4 space-y-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            📚 Safety Explanation
+          </h3>
+
+          {/* Subtitles Toggle */}
           <div className="flex items-center justify-end gap-2 px-1">
             <Subtitles className="h-4 w-4 text-muted-foreground" />
             <Label htmlFor="subtitles-correct" className="text-sm text-muted-foreground cursor-pointer">
@@ -60,10 +67,21 @@ export const CorrectAnswerSection = ({
               onCheckedChange={setSubtitlesEnabled}
             />
           </div>
+
+          {/* Video 1: The Mistake / What NOT to do */}
           <ExplanationVideo
-            label="Correct Procedure Explanation"
+            label="The Mistake / What NOT to do"
+            labelIcon="❌"
+            videoUrl={failureVideoUrl}
+            subtitlesEnabled={subtitlesEnabled}
+            onWatched={() => {}}
+          />
+
+          {/* Video 2: The Solution / What to do */}
+          <ExplanationVideo
+            label="The Solution / What to do"
             labelIcon="✅"
-            videoUrl={videoUrl}
+            videoUrl={successVideoUrl}
             subtitlesEnabled={subtitlesEnabled}
             onWatched={() => {}}
           />

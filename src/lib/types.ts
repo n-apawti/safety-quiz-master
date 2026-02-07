@@ -8,7 +8,8 @@ export interface Question {
   id: string;
   text: string;
   options: Option[];
-  videoUrl: string;
+  failureVideoUrl: string;
+  successVideoUrl: string;
 }
 
 export interface Quiz {

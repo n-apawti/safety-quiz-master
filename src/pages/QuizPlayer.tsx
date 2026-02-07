@@ -252,7 +252,8 @@ const QuizPlayer = () => {
             {/* Feedback Sections */}
             {currentState?.answerState === 'correct' && (
               <CorrectAnswerSection
-                videoUrl={currentQuestion?.videoUrl || ''}
+                failureVideoUrl={currentQuestion?.failureVideoUrl || ''}
+                successVideoUrl={currentQuestion?.successVideoUrl || ''}
                 isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
                 onNext={handleNext}
               />
@@ -260,8 +261,8 @@ const QuizPlayer = () => {
 
             {currentState?.answerState === 'incorrect' && (
               <WrongAnswerSection
-                wrongVideoUrl={currentQuestion?.videoUrl || ''}
-                correctVideoUrl={currentQuestion?.videoUrl || ''}
+                failureVideoUrl={currentQuestion?.failureVideoUrl || ''}
+                successVideoUrl={currentQuestion?.successVideoUrl || ''}
                 onRetry={handleRetry}
               />
             )}
