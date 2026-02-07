@@ -7,7 +7,6 @@ import Index from "./pages/Index";
 import UploadWizard from "./pages/UploadWizard";
 import QuizEditor from "./pages/QuizEditor";
 import QuizPlayer from "./pages/QuizPlayer";
-import PresentationMode from "./pages/PresentationMode";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,7 +22,6 @@ const App = () => (
           <Route path="/upload" element={<UploadWizard />} />
           <Route path="/editor/:manualId" element={<QuizEditor />} />
           <Route path="/quiz/:quizId" element={<QuizPlayer />} />
-          <Route path="/presentation/:quizId" element={<PresentationMode />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

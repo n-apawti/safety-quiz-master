@@ -1,4 +1,4 @@
-import { FileText, ChevronDown, ChevronUp, Calendar, ClipboardList, Plus, Pencil, Trash2, Loader2, Monitor } from 'lucide-react';
+import { FileText, ChevronDown, ChevronUp, Calendar, ClipboardList, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -36,12 +36,12 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
         quizName,
         questionCount,
       });
-      
+
       onManualUpdate({
         ...manual,
         quizzes: [...manual.quizzes, newQuiz],
       });
-      
+
       toast({
         title: 'Quiz Created',
         description: `"${quizName}" has been generated with ${questionCount} questions.`,
@@ -59,15 +59,15 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
   const handleDeleteQuiz = async (quizId: string, quizName: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setDeletingQuizId(quizId);
-    
+
     try {
       await deleteQuiz(manual.id, quizId);
-      
+
       onManualUpdate({
         ...manual,
         quizzes: manual.quizzes.filter(q => q.id !== quizId),
       });
-      
+
       toast({
         title: 'Quiz Deleted',
         description: `"${quizName}" has been removed.`,
@@ -168,18 +168,6 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/presentation/${quiz.id}`);
-                        }}
-                        className="h-8 w-8"
-                        title="Start Presentation"
-                      >
-                        <Monitor className="h-4 w-4" />
-                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"

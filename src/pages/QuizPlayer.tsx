@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, Trophy, RotateCcw, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { WrongAnswerSection } from '@/components/WrongAnswerSection';
 import { CorrectAnswerSection } from '@/components/CorrectAnswerSection';
 import { fetchQuizById } from '@/lib/api';
-import { Quiz } from '@/lib/types';
+import { Quiz, Question } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 type AnswerState = 'unanswered' | 'correct' | 'incorrect';
@@ -17,11 +17,45 @@ interface QuestionState {
   answerState: AnswerState;
 }
 
+// Shuffled question with reordered options and updated correct index
+interface ShuffledQuestion {
+  original: Question;
+  shuffledOptions: string[];
+  shuffledCorrectIndex: number;
+}
+
+// Fisher-Yates shuffle that returns indices mapping
+function shuffleWithIndices<T>(array: T[]): { shuffled: T[]; originalIndices: number[] } {
+  const indices = array.map((_, i) => i);
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return { shuffled, originalIndices: indices };
+}
+
+// Create shuffled questions with shuffled options
+function createShuffledQuestions(questions: Question[]): ShuffledQuestion[] {
+  return questions.map((q) => {
+    const { shuffled, originalIndices } = shuffleWithIndices(q.options);
+    // Find where the correct answer ended up after shuffle
+    const shuffledCorrectIndex = originalIndices.indexOf(q.correct_answer_index);
+    return {
+      original: q,
+      shuffledOptions: shuffled,
+      shuffledCorrectIndex,
+    };
+  });
+}
+
 const QuizPlayer = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [shuffledQuestions, setShuffledQuestions] = useState<ShuffledQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questionStates, setQuestionStates] = useState<QuestionState[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,8 +68,11 @@ const QuizPlayer = () => {
         const result = await fetchQuizById(quizId);
         if (result) {
           setQuiz(result.quiz);
+          // Shuffle answer options for each question
+          const shuffled = createShuffledQuestions(result.quiz.questions);
+          setShuffledQuestions(shuffled);
           setQuestionStates(
-            result.quiz.questions.map(() => ({
+            shuffled.map(() => ({
               selectedOptionIndex: null,
               answerState: 'unanswered',
             }))
@@ -51,14 +88,16 @@ const QuizPlayer = () => {
     loadQuiz();
   }, [quizId]);
 
-  const currentQuestion = quiz?.questions[currentQuestionIndex];
+  const currentShuffledQuestion = shuffledQuestions[currentQuestionIndex];
+  const currentQuestion = currentShuffledQuestion?.original;
   const currentState = questionStates[currentQuestionIndex];
-  const progress = ((currentQuestionIndex + 1) / (quiz?.questions.length || 1)) * 100;
+  const progress = ((currentQuestionIndex + 1) / (shuffledQuestions.length || 1)) * 100;
 
   const handleOptionSelect = (optionIndex: number) => {
-    if (currentState?.answerState !== 'unanswered' || !currentQuestion) return;
+    if (currentState?.answerState !== 'unanswered' || !currentShuffledQuestion) return;
 
-    const isCorrect = optionIndex === currentQuestion.correct_answer_index;
+    // Use the shuffled correct index for comparison
+    const isCorrect = optionIndex === currentShuffledQuestion.shuffledCorrectIndex;
     const newStates = [...questionStates];
     newStates[currentQuestionIndex] = {
       ...newStates[currentQuestionIndex],
@@ -69,7 +108,7 @@ const QuizPlayer = () => {
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < (quiz?.questions.length || 0) - 1) {
+    if (currentQuestionIndex < shuffledQuestions.length - 1) {
       setCurrentQuestionIndex((i) => i + 1);
     } else {
       setIsComplete(true);
@@ -111,7 +150,7 @@ const QuizPlayer = () => {
   }
 
   if (isComplete) {
-    const percentage = Math.round((correctCount / quiz.questions.length) * 100);
+    const percentage = Math.round((correctCount / shuffledQuestions.length) * 100);
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center animate-scale-in">
@@ -125,7 +164,7 @@ const QuizPlayer = () => {
             <div>
               <p className="text-4xl font-bold text-primary">{percentage}%</p>
               <p className="text-muted-foreground">
-                {correctCount} of {quiz.questions.length} correct
+                {correctCount} of {shuffledQuestions.length} correct
               </p>
             </div>
             <div className="flex flex-col gap-3">
@@ -136,12 +175,17 @@ const QuizPlayer = () => {
                 variant="outline"
                 onClick={() => {
                   setCurrentQuestionIndex(0);
-                  setQuestionStates(
-                    quiz.questions.map(() => ({
-                      selectedOptionIndex: null,
-                      answerState: 'unanswered',
-                    }))
-                  );
+                  // Reshuffle options on retake
+                  if (quiz) {
+                    const reshuffled = createShuffledQuestions(quiz.questions);
+                    setShuffledQuestions(reshuffled);
+                    setQuestionStates(
+                      reshuffled.map(() => ({
+                        selectedOptionIndex: null,
+                        answerState: 'unanswered',
+                      }))
+                    );
+                  }
                   setIsComplete(false);
                 }}
                 className="w-full gap-2"
@@ -169,13 +213,13 @@ const QuizPlayer = () => {
               <div>
                 <h1 className="text-xl font-bold text-foreground">{quiz.name}</h1>
                 <p className="text-sm text-muted-foreground">
-                  Question {currentQuestionIndex + 1} of {quiz.questions.length}
+                  Question {currentQuestionIndex + 1} of {shuffledQuestions.length}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-muted-foreground">
-                Score: {correctCount}/{quiz.questions.length}
+                Score: {correctCount}/{shuffledQuestions.length}
               </span>
             </div>
           </div>
@@ -199,9 +243,9 @@ const QuizPlayer = () => {
           <CardContent className="space-y-4">
             {/* Options */}
             <div className="space-y-3">
-              {currentQuestion?.options.map((option, index) => {
+              {currentShuffledQuestion?.shuffledOptions.map((option, index) => {
                 const isSelected = currentState?.selectedOptionIndex === index;
-                const isCorrectOption = index === currentQuestion.correct_answer_index;
+                const isCorrectOption = index === currentShuffledQuestion.shuffledCorrectIndex;
                 // Only show correct highlight if user got it right
                 const showCorrect =
                   currentState?.answerState === 'correct' && isCorrectOption;
@@ -256,7 +300,7 @@ const QuizPlayer = () => {
                 failureVideoUrl={currentQuestion?.video_assets.failure_video || ''}
                 successVideoUrl={currentQuestion?.video_assets.success_video || ''}
                 explanation={currentQuestion?.explanation}
-                isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
+                isLastQuestion={currentQuestionIndex >= shuffledQuestions.length - 1}
                 onNext={handleNext}
               />
             )}
