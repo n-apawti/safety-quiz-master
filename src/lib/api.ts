@@ -22,6 +22,8 @@ interface BackendQuestion {
   video_assets?: {
     success_video?: string;
     failure_video?: string;
+    success_prompt?: string;
+    failure_prompt?: string;
   } | null;
 }
 
@@ -29,6 +31,7 @@ interface BackendQuiz {
   id: string;
   title: string;
   document_id?: string | null;
+  summary?: string | null;
   questions: BackendQuestion[];
   created_at?: string;
 }
@@ -38,7 +41,10 @@ interface BackendQuiz {
 // ============================================================================
 
 function transformBackendQuestion(q: BackendQuestion): Question {
-  return {
+  console.log('[DEBUG] transformBackendQuestion input:', JSON.stringify(q, null, 2));
+  console.log('[DEBUG] video_assets from backend:', q.video_assets);
+
+  const result = {
     id: q.id,
     question: q.prompt,
     options: q.choices,
@@ -48,8 +54,13 @@ function transformBackendQuestion(q: BackendQuestion): Question {
     video_assets: {
       success_video: q.video_assets?.success_video ?? '',
       failure_video: q.video_assets?.failure_video ?? '',
+      success_prompt: q.video_assets?.success_prompt ?? '',
+      failure_prompt: q.video_assets?.failure_prompt ?? '',
     },
   };
+
+  console.log('[DEBUG] transformBackendQuestion output video_assets:', result.video_assets);
+  return result;
 }
 
 function transformBackendQuiz(quiz: BackendQuiz): Quiz {
@@ -188,12 +199,19 @@ export const fetchQuizById = async (
   quizId: string
 ): Promise<{ quiz: Quiz; manualId: string } | null> => {
   try {
+    console.log('[DEBUG] fetchQuizById called with quizId:', quizId);
     const res = await fetch(`${API_BASE_URL}/quiz/${quizId}`);
     if (!res.ok) return null;
 
     const backendQuiz: BackendQuiz = await res.json();
+    console.log('[DEBUG] Backend response:', JSON.stringify(backendQuiz, null, 2));
+    console.log('[DEBUG] Backend questions:', backendQuiz.questions);
+
+    const transformedQuiz = transformBackendQuiz(backendQuiz);
+    console.log('[DEBUG] Transformed quiz:', JSON.stringify(transformedQuiz, null, 2));
+
     return {
-      quiz: transformBackendQuiz(backendQuiz),
+      quiz: transformedQuiz,
       manualId: backendQuiz.document_id || 'orphan-quizzes',
     };
   } catch (error) {
@@ -412,8 +430,38 @@ export const deleteQuiz = async (manualId: string, quizId: string): Promise<void
   console.log(`[API] Quiz ${quizId} deleted`);
 };
 
-// POST /quiz/:id/publish (stub - can be expanded for actual video attachment)
-export const publishQuizzes = async (manualId: string): Promise<void> => {
+// POST /quiz/:id/generate-videos - Trigger video generation for a quiz
+export const generateVideosForQuiz = async (quizId: string): Promise<Quiz> => {
+  const res = await fetch(`${API_BASE_URL}/quiz/${quizId}/generate-videos`, {
+    method: 'POST',
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.detail || 'Failed to generate videos');
+  }
+
+  const backendQuiz: BackendQuiz = await res.json();
+  return transformBackendQuiz(backendQuiz);
+};
+
+// POST /quiz/:id/publish - Generate videos for all quizzes in a manual
+export const publishQuizzes = async (
+  manualId: string,
+  quizIds: string[],
+  onProgress?: (quizId: string, status: 'pending' | 'generating' | 'done' | 'error') => void
+): Promise<void> => {
   console.log(`[API] Publishing quizzes for manual ${manualId}`);
-  // In a real implementation, this would trigger video attachment on the backend
+
+  for (const quizId of quizIds) {
+    try {
+      onProgress?.(quizId, 'generating');
+      await generateVideosForQuiz(quizId);
+      onProgress?.(quizId, 'done');
+    } catch (error) {
+      console.error(`Failed to generate videos for quiz ${quizId}:`, error);
+      onProgress?.(quizId, 'error');
+      throw error;
+    }
+  }
 };

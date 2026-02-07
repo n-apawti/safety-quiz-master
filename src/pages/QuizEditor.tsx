@@ -27,6 +27,7 @@ const QuizEditor = () => {
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [publishingQuizzes, setPublishingQuizzes] = useState<Map<string, 'pending' | 'generating' | 'done' | 'error'>>(new Map());
   const [generatingQuestions, setGeneratingQuestions] = useState<Set<string>>(new Set());
   const [savedQuestions, setSavedQuestions] = useState<Set<string>>(new Set());
 
@@ -294,23 +295,38 @@ const QuizEditor = () => {
       return;
     }
 
+    // Get all quiz IDs from the manual
+    const quizIds = manual.quizzes.map(q => q.id);
+
+    // Initialize publishing status for all quizzes
+    const initialStatus = new Map<string, 'pending' | 'generating' | 'done' | 'error'>();
+    quizIds.forEach(id => initialStatus.set(id, 'pending'));
+    setPublishingQuizzes(initialStatus);
+
     setIsPublishing(true);
     try {
-      await publishQuizzes(manual.id);
+      await publishQuizzes(manual.id, quizIds, (quizId, status) => {
+        setPublishingQuizzes(prev => {
+          const next = new Map(prev);
+          next.set(quizId, status);
+          return next;
+        });
+      });
       toast({
         title: 'Quizzes Published!',
-        description: 'Your quizzes are now ready for users to take.',
+        description: 'Videos have been generated and your quizzes are now ready.',
       });
       navigate('/');
     } catch (error) {
       console.error('Failed to publish:', error);
       toast({
         title: 'Error',
-        description: 'Failed to publish quizzes',
+        description: 'Failed to generate videos for quizzes. Please try again.',
         variant: 'destructive',
       });
     } finally {
       setIsPublishing(false);
+      setPublishingQuizzes(new Map());
     }
   };
 
@@ -367,7 +383,7 @@ const QuizEditor = () => {
                 {isPublishing ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Publishing...
+                    Generating Videos ({Array.from(publishingQuizzes.values()).filter(s => s === 'done').length}/{publishingQuizzes.size})
                   </>
                 ) : (
                   <>

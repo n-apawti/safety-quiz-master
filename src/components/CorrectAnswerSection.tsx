@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, CheckCircle2, Subtitles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Subtitles, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,7 @@ import { ExplanationVideo } from './ExplanationVideo';
 interface CorrectAnswerSectionProps {
   failureVideoUrl: string;
   successVideoUrl: string;
+  explanation?: string;
   isLastQuestion: boolean;
   onNext: () => void;
 }
@@ -15,6 +16,7 @@ interface CorrectAnswerSectionProps {
 export const CorrectAnswerSection = ({
   failureVideoUrl,
   successVideoUrl,
+  explanation,
   isLastQuestion,
   onNext,
 }: CorrectAnswerSectionProps) => {
@@ -28,6 +30,17 @@ export const CorrectAnswerSection = ({
         <CheckCircle2 className="h-5 w-5" />
         <span className="font-medium">Correct! Great job.</span>
       </div>
+
+      {/* Explanation Text */}
+      {explanation && (
+        <div className="flex gap-3 p-4 rounded-lg bg-info/10 border border-info/20 mb-4">
+          <Info className="h-5 w-5 text-info flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-sm text-info mb-1">Explanation</h4>
+            <p className="text-sm text-foreground/80">{explanation}</p>
+          </div>
+        </div>
+      )}
 
       {/* Action Buttons */}
       <div className="flex gap-3 mb-4">
@@ -74,7 +87,7 @@ export const CorrectAnswerSection = ({
             labelIcon="❌"
             videoUrl={failureVideoUrl}
             subtitlesEnabled={subtitlesEnabled}
-            onWatched={() => {}}
+            onWatched={() => { }}
           />
 
           {/* Video 2: The Solution / What to do */}
@@ -83,7 +96,7 @@ export const CorrectAnswerSection = ({
             labelIcon="✅"
             videoUrl={successVideoUrl}
             subtitlesEnabled={subtitlesEnabled}
-            onWatched={() => {}}
+            onWatched={() => { }}
           />
         </div>
       )}

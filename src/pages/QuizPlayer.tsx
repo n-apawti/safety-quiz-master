@@ -136,7 +136,7 @@ const QuizPlayer = () => {
                 variant="outline"
                 onClick={() => {
                   setCurrentQuestionIndex(0);
-                setQuestionStates(
+                  setQuestionStates(
                     quiz.questions.map(() => ({
                       selectedOptionIndex: null,
                       answerState: 'unanswered',
@@ -222,8 +222,8 @@ const QuizPlayer = () => {
                       showCorrect && 'border-success bg-success/10',
                       showIncorrect && 'border-destructive bg-destructive/10',
                       isSelected &&
-                        currentState?.answerState === 'unanswered' &&
-                        'border-primary'
+                      currentState?.answerState === 'unanswered' &&
+                      'border-primary'
                     )}
                   >
                     <span
@@ -232,8 +232,8 @@ const QuizPlayer = () => {
                         showCorrect
                           ? 'bg-success text-success-foreground'
                           : showIncorrect
-                          ? 'bg-destructive text-destructive-foreground'
-                          : 'bg-muted text-muted-foreground'
+                            ? 'bg-destructive text-destructive-foreground'
+                            : 'bg-muted text-muted-foreground'
                       )}
                     >
                       {showCorrect ? (
@@ -255,6 +255,7 @@ const QuizPlayer = () => {
               <CorrectAnswerSection
                 failureVideoUrl={currentQuestion?.video_assets.failure_video || ''}
                 successVideoUrl={currentQuestion?.video_assets.success_video || ''}
+                explanation={currentQuestion?.explanation}
                 isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
                 onNext={handleNext}
               />
@@ -264,6 +265,7 @@ const QuizPlayer = () => {
               <WrongAnswerSection
                 failureVideoUrl={currentQuestion?.video_assets.failure_video || ''}
                 successVideoUrl={currentQuestion?.video_assets.success_video || ''}
+                explanation={currentQuestion?.explanation}
                 onRetry={handleRetry}
               />
             )}

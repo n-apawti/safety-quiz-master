@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RotateCcw, Subtitles } from 'lucide-react';
+import { RotateCcw, Subtitles, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -8,12 +8,14 @@ import { ExplanationVideo } from './ExplanationVideo';
 interface WrongAnswerSectionProps {
   failureVideoUrl: string;
   successVideoUrl: string;
+  explanation?: string;
   onRetry: () => void;
 }
 
 export const WrongAnswerSection = ({
   failureVideoUrl,
   successVideoUrl,
+  explanation,
   onRetry,
 }: WrongAnswerSectionProps) => {
   const [wrongVideoWatched, setWrongVideoWatched] = useState(false);
@@ -30,6 +32,17 @@ export const WrongAnswerSection = ({
           ❌ Incorrect answer. Please watch both explanation videos to retry.
         </span>
       </div>
+
+      {/* Explanation Text */}
+      {explanation && (
+        <div className="flex gap-3 p-4 rounded-lg bg-info/10 border border-info/20">
+          <Info className="h-5 w-5 text-info flex-shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-medium text-sm text-info mb-1">Explanation</h4>
+            <p className="text-sm text-foreground/80">{explanation}</p>
+          </div>
+        </div>
+      )}
 
       {/* Subtitles Toggle */}
       <div className="flex items-center justify-end gap-2 px-1">

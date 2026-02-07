@@ -1,6 +1,8 @@
 export interface VideoAssets {
-  success_video: string;
+  failure_prompt: string;
+  success_prompt: string;
   failure_video: string;
+  success_video: string;
 }
 
 export interface Question {
