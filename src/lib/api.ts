@@ -1,5 +1,5 @@
-import { Manual, Quiz, GenerateQuizConfig } from './types';
-import { mockManuals, generateMockQuizzes } from './mockData';
+import { Manual, Quiz, Question, GenerateQuizConfig, AddQuizConfig } from './types';
+import { mockManuals, generateMockQuizzes, generateMockQuestion } from './mockData';
 
 // Simulated API delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -52,6 +52,34 @@ export const uploadManualAndGenerateQuizzes = async (
   return { manual: newManual, quizzes: newQuizzes };
 };
 
+// POST /api/manuals/:id/quizzes - Add a new quiz to an existing manual
+export const addQuizToManual = async (config: AddQuizConfig): Promise<Quiz> => {
+  await delay(1500); // Simulate generation time
+  
+  const questions: Question[] = [];
+  for (let i = 0; i < config.questionCount; i++) {
+    questions.push(generateMockQuestion(i, config.quizName));
+  }
+  
+  const newQuiz: Quiz = {
+    id: `quiz-${Date.now()}`,
+    name: config.quizName,
+    questions,
+  };
+  
+  manuals = manuals.map(manual => {
+    if (manual.id === config.manualId) {
+      return {
+        ...manual,
+        quizzes: [...manual.quizzes, newQuiz],
+      };
+    }
+    return manual;
+  });
+  
+  return newQuiz;
+};
+
 // PUT /api/quizzes/:id
 export const updateQuiz = async (manualId: string, quiz: Quiz): Promise<Quiz> => {
   await delay(300);
@@ -69,6 +97,47 @@ export const updateQuiz = async (manualId: string, quiz: Quiz): Promise<Quiz> =>
   return quiz;
 };
 
+// PUT /api/questions/:id - Update a single question (triggers video regeneration)
+export const updateQuestion = async (
+  manualId: string, 
+  quizId: string, 
+  question: Question
+): Promise<Question> => {
+  // Simulate video regeneration delay (longer than normal save)
+  await delay(2000);
+  
+  // Generate new video URLs to simulate regeneration
+  const updatedQuestion: Question = {
+    ...question,
+    failureVideoUrl: `https://example.com/videos/failure-${Date.now()}.mp4`,
+    successVideoUrl: `https://example.com/videos/success-${Date.now()}.mp4`,
+  };
+  
+  manuals = manuals.map(manual => {
+    if (manual.id === manualId) {
+      return {
+        ...manual,
+        quizzes: manual.quizzes.map(quiz => {
+          if (quiz.id === quizId) {
+            return {
+              ...quiz,
+              questions: quiz.questions.map(q => 
+                q.id === question.id ? updatedQuestion : q
+              ),
+            };
+          }
+          return quiz;
+        }),
+      };
+    }
+    return manual;
+  });
+  
+  console.log(`[API] Question ${question.id} updated. Video regeneration triggered.`);
+  
+  return updatedQuestion;
+};
+
 // DELETE /api/quizzes/:id
 export const deleteQuiz = async (manualId: string, quizId: string): Promise<void> => {
   await delay(300);
@@ -82,6 +151,8 @@ export const deleteQuiz = async (manualId: string, quizId: string): Promise<void
     }
     return manual;
   });
+  
+  console.log(`[API] Quiz ${quizId} deleted from manual ${manualId}`);
 };
 
 // POST /api/quizzes/:id/publish

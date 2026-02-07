@@ -26,6 +26,12 @@ const Index = () => {
     loadManuals();
   }, []);
 
+  const handleManualUpdate = (updatedManual: Manual) => {
+    setManuals(manuals.map(m => 
+      m.id === updatedManual.id ? updatedManual : m
+    ));
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -83,7 +89,11 @@ const Index = () => {
         ) : (
           <div className="grid gap-4">
             {manuals.map((manual) => (
-              <ManualCard key={manual.id} manual={manual} />
+              <ManualCard 
+                key={manual.id} 
+                manual={manual} 
+                onManualUpdate={handleManualUpdate}
+              />
             ))}
           </div>
         )}
