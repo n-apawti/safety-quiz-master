@@ -1,22 +1,27 @@
-export interface Option {
-  id: string;
-  text: string;
-  isCorrect: boolean;
-}
-
 export interface Question {
   id: string;
-  text: string;
-  options: Option[];
-  failureVideoUrl: string;
-  successVideoUrl: string;
-  isRegenerating?: boolean;
+  question: string;
+  options: string[];
+  correct_answer: number; // Index of the correct option
+  explanation: string;
+  reference: string;
   isNew?: boolean; // Flag for newly added questions that need asset generation
+  isRegenerating?: boolean;
+}
+
+export interface Warning {
+  severity: 'DANGER' | 'WARNING' | 'CAUTION';
+  title: string;
+  description: string;
+  consequences: string;
+  context: string;
 }
 
 export interface Quiz {
   id: string;
   name: string;
+  manual_path: string;
+  warnings: Warning[];
   questions: Question[];
 }
 
