@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Trash2, GripVertical, Check, Loader2, RefreshCw } from 'lucide-react';
+import { Trash2, GripVertical, Check, Loader2, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils';
 interface QuestionEditorProps {
   question: Question;
   index: number;
-  isRegenerating?: boolean;
+  isGenerating?: boolean;
+  isSaved?: boolean;
   onUpdate: (question: Question) => void;
   onSave: (question: Question) => void;
   onDelete: () => void;
@@ -19,7 +20,8 @@ interface QuestionEditorProps {
 export const QuestionEditor = ({
   question,
   index,
-  isRegenerating = false,
+  isGenerating = false,
+  isSaved = false,
   onUpdate,
   onSave,
   onDelete,
@@ -38,13 +40,13 @@ export const QuestionEditor = ({
     setHasChanges(hasTextChanges);
   }, [question]);
 
-  // Update original ref when save completes (regeneration done)
+  // Update original ref when save completes
   useEffect(() => {
-    if (!isRegenerating && hasChanges) {
+    if (isSaved && !isGenerating) {
       originalRef.current = question;
       setHasChanges(false);
     }
-  }, [isRegenerating]);
+  }, [isSaved, isGenerating, question]);
 
   const handleQuestionTextChange = (text: string) => {
     onUpdate({ ...question, text });
@@ -73,41 +75,59 @@ export const QuestionEditor = ({
   };
 
   const handleBlur = () => {
-    if (hasChanges && !isRegenerating) {
+    if (hasChanges && !isGenerating) {
       onSave(question);
     }
   };
 
   const optionLabels = ['A', 'B', 'C'];
+  const isNewQuestion = question.isNew;
 
   return (
     <Card className={cn(
       "animate-fade-in transition-all",
-      isRegenerating && "ring-2 ring-primary/50"
+      isGenerating && "ring-2 ring-primary/50",
+      isNewQuestion && !isGenerating && "ring-2 ring-amber-500/50 bg-amber-50/5"
     )}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
             <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground font-semibold text-sm">
+            <span className={cn(
+              "flex items-center justify-center w-8 h-8 rounded-lg font-semibold text-sm",
+              isNewQuestion 
+                ? "bg-amber-500 text-white" 
+                : "bg-primary text-primary-foreground"
+            )}>
               {index + 1}
             </span>
-          </div>
-          <div className="flex items-center gap-2">
-            {isRegenerating && (
-              <span className="flex items-center gap-2 text-sm text-primary animate-pulse">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Regenerating Video...
+            {isNewQuestion && (
+              <span className="text-xs font-medium text-amber-600 bg-amber-100 px-2 py-1 rounded">
+                New
               </span>
             )}
-            {hasChanges && !isRegenerating && (
+          </div>
+          <div className="flex items-center gap-2">
+            {isGenerating && (
+              <span className="flex items-center gap-2 text-sm text-primary animate-pulse">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating Assets...
+              </span>
+            )}
+            {isSaved && !isGenerating && !hasChanges && !isNewQuestion && (
+              <span className="flex items-center gap-1 text-sm text-success">
+                <CheckCircle2 className="h-4 w-4" />
+                Saved
+              </span>
+            )}
+            {hasChanges && !isGenerating && (
               <span className="text-xs text-muted-foreground">Unsaved changes</span>
             )}
             <Button
               variant="ghost"
               size="icon"
               onClick={onDelete}
-              disabled={isRegenerating}
+              disabled={isGenerating}
               className="text-destructive hover:text-destructive hover:bg-destructive/10"
             >
               <Trash2 className="h-4 w-4" />
@@ -124,7 +144,7 @@ export const QuestionEditor = ({
             onChange={(e) => handleQuestionTextChange(e.target.value)}
             onBlur={handleBlur}
             placeholder="Enter question text..."
-            disabled={isRegenerating}
+            disabled={isGenerating}
           />
         </div>
 
@@ -135,13 +155,13 @@ export const QuestionEditor = ({
               <button
                 type="button"
                 onClick={() => handleCorrectOptionChange(option.id)}
-                disabled={isRegenerating}
+                disabled={isGenerating}
                 className={cn(
                   'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all font-medium text-sm',
                   option.isCorrect
                     ? 'border-success bg-success text-success-foreground'
                     : 'border-border hover:border-primary/50 text-muted-foreground',
-                  isRegenerating && 'opacity-50 cursor-not-allowed'
+                  isGenerating && 'opacity-50 cursor-not-allowed'
                 )}
               >
                 {option.isCorrect ? (
@@ -156,7 +176,7 @@ export const QuestionEditor = ({
                 onBlur={handleBlur}
                 placeholder={`Option ${optionLabels[optIndex]}...`}
                 className="flex-1"
-                disabled={isRegenerating}
+                disabled={isGenerating}
               />
             </div>
           ))}

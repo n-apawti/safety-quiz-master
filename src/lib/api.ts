@@ -97,7 +97,83 @@ export const updateQuiz = async (manualId: string, quiz: Quiz): Promise<Quiz> =>
   return quiz;
 };
 
-// PUT /api/questions/:id - Update a single question (triggers video regeneration)
+// PUT /api/questions/:id/text - Update question text only (no video regeneration)
+export const updateQuestionText = async (
+  manualId: string, 
+  quizId: string, 
+  question: Question
+): Promise<Question> => {
+  // Quick update - no video regeneration
+  await delay(300);
+  
+  manuals = manuals.map(manual => {
+    if (manual.id === manualId) {
+      return {
+        ...manual,
+        quizzes: manual.quizzes.map(quiz => {
+          if (quiz.id === quizId) {
+            return {
+              ...quiz,
+              questions: quiz.questions.map(q => 
+                q.id === question.id ? question : q
+              ),
+            };
+          }
+          return quiz;
+        }),
+      };
+    }
+    return manual;
+  });
+  
+  console.log(`[API] Question ${question.id} text updated. No video regeneration.`);
+  
+  return question;
+};
+
+// POST /api/questions/generate - Generate videos for NEW questions only
+export const generateQuestionAssets = async (
+  manualId: string, 
+  quizId: string, 
+  question: Question
+): Promise<Question> => {
+  // Longer delay - simulating video generation
+  await delay(3000);
+  
+  // Generate video URLs for the new question
+  const updatedQuestion: Question = {
+    ...question,
+    failureVideoUrl: `https://example.com/videos/failure-${Date.now()}.mp4`,
+    successVideoUrl: `https://example.com/videos/success-${Date.now()}.mp4`,
+    isNew: false, // Mark as no longer new after generation
+  };
+  
+  manuals = manuals.map(manual => {
+    if (manual.id === manualId) {
+      return {
+        ...manual,
+        quizzes: manual.quizzes.map(quiz => {
+          if (quiz.id === quizId) {
+            return {
+              ...quiz,
+              questions: quiz.questions.map(q => 
+                q.id === question.id ? updatedQuestion : q
+              ),
+            };
+          }
+          return quiz;
+        }),
+      };
+    }
+    return manual;
+  });
+  
+  console.log(`[API] Question ${question.id} assets generated. Videos created.`);
+  
+  return updatedQuestion;
+};
+
+// PUT /api/questions/:id - Update a single question (triggers video regeneration) - LEGACY
 export const updateQuestion = async (
   manualId: string, 
   quizId: string, 

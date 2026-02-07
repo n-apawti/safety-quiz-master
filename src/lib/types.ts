@@ -11,6 +11,7 @@ export interface Question {
   failureVideoUrl: string;
   successVideoUrl: string;
   isRegenerating?: boolean;
+  isNew?: boolean; // Flag for newly added questions that need asset generation
 }
 
 export interface Quiz {
