@@ -76,6 +76,7 @@ const QuizEditor = () => {
         failure_video: '',
         success_video: '',
       },
+      explanation: '',
       isNew: true, // Mark as new - needs asset generation
     };
 
