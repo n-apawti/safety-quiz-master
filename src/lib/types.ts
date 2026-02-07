@@ -10,6 +10,7 @@ export interface Question {
   options: Option[];
   failureVideoUrl: string;
   successVideoUrl: string;
+  isRegenerating?: boolean;
 }
 
 export interface Quiz {
@@ -31,4 +32,10 @@ export interface GenerateQuizConfig {
   numQuizzes: number;
   questionsPerQuiz: number;
   file: File | null;
+}
+
+export interface AddQuizConfig {
+  manualId: string;
+  quizName: string;
+  questionCount: number;
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
   Trash2,
@@ -11,21 +11,22 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuestionEditor } from '@/components/QuestionEditor';
-import { fetchManualById, updateQuiz, deleteQuiz, publishQuizzes } from '@/lib/api';
+import { fetchManualById, updateQuiz, updateQuestion, deleteQuiz, publishQuizzes } from '@/lib/api';
 import { Manual, Quiz, Question } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const QuizEditor = () => {
   const { manualId } = useParams<{ manualId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   const [manual, setManual] = useState<Manual | null>(null);
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [regeneratingQuestions, setRegeneratingQuestions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const loadManual = async () => {
@@ -33,6 +34,15 @@ const QuizEditor = () => {
       try {
         const data = await fetchManualById(manualId);
         setManual(data);
+        
+        // If a specific quiz ID is provided, navigate to it
+        const quizId = searchParams.get('quiz');
+        if (quizId && data) {
+          const quizIndex = data.quizzes.findIndex(q => q.id === quizId);
+          if (quizIndex !== -1) {
+            setCurrentQuizIndex(quizIndex);
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch manual:', error);
         toast({
@@ -46,11 +56,12 @@ const QuizEditor = () => {
     };
 
     loadManual();
-  }, [manualId, toast]);
+  }, [manualId, searchParams, toast]);
 
   const currentQuiz = manual?.quizzes[currentQuizIndex];
 
-  const handleQuestionUpdate = async (updatedQuestion: Question) => {
+  // Local update only (no API call)
+  const handleQuestionUpdate = (updatedQuestion: Question) => {
     if (!manual || !currentQuiz) return;
 
     const updatedQuiz: Quiz = {
@@ -66,15 +77,55 @@ const QuizEditor = () => {
         i === currentQuizIndex ? updatedQuiz : q
       ),
     });
+  };
 
-    // Auto-save
-    setIsSaving(true);
+  // Save individual question and trigger video regeneration
+  const handleQuestionSave = async (question: Question) => {
+    if (!manual || !currentQuiz) return;
+
+    // Mark question as regenerating
+    setRegeneratingQuestions(prev => new Set(prev).add(question.id));
+
     try {
-      await updateQuiz(manual.id, updatedQuiz);
+      // Send only this question to the backend for video regeneration
+      const updatedQuestion = await updateQuestion(manual.id, currentQuiz.id, question);
+      
+      // Update local state with the regenerated question
+      setManual(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          quizzes: prev.quizzes.map((quiz, i) => {
+            if (i === currentQuizIndex) {
+              return {
+                ...quiz,
+                questions: quiz.questions.map(q =>
+                  q.id === question.id ? updatedQuestion : q
+                ),
+              };
+            }
+            return quiz;
+          }),
+        };
+      });
+
+      toast({
+        title: 'Question Updated',
+        description: 'Video regeneration complete for this question.',
+      });
     } catch (error) {
-      console.error('Failed to save:', error);
+      console.error('Failed to save question:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update question',
+        variant: 'destructive',
+      });
     } finally {
-      setIsSaving(false);
+      setRegeneratingQuestions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(question.id);
+        return newSet;
+      });
     }
   };
 
@@ -93,7 +144,6 @@ const QuizEditor = () => {
       ),
     });
 
-    setIsSaving(true);
     try {
       await updateQuiz(manual.id, updatedQuiz);
       toast({
@@ -102,8 +152,6 @@ const QuizEditor = () => {
       });
     } catch (error) {
       console.error('Failed to save:', error);
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -140,6 +188,16 @@ const QuizEditor = () => {
 
   const handlePublish = async () => {
     if (!manual) return;
+
+    // Check if any questions are still regenerating
+    if (regeneratingQuestions.size > 0) {
+      toast({
+        title: 'Please Wait',
+        description: 'Some questions are still regenerating videos. Please wait before publishing.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     setIsPublishing(true);
     try {
@@ -199,16 +257,16 @@ const QuizEditor = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {isSaving && (
-                <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              {regeneratingQuestions.size > 0 && (
+                <span className="flex items-center gap-2 text-sm text-primary">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
+                  {regeneratingQuestions.size} question{regeneratingQuestions.size > 1 ? 's' : ''} regenerating...
                 </span>
               )}
               <Button
                 variant="success"
                 onClick={handlePublish}
-                disabled={isPublishing}
+                disabled={isPublishing || regeneratingQuestions.size > 0}
                 className="gap-2"
               >
                 {isPublishing ? (
@@ -302,7 +360,9 @@ const QuizEditor = () => {
               key={question.id}
               question={question}
               index={index}
+              isRegenerating={regeneratingQuestions.has(question.id)}
               onUpdate={handleQuestionUpdate}
+              onSave={handleQuestionSave}
               onDelete={() => handleDeleteQuestion(question.id)}
             />
           ))}
