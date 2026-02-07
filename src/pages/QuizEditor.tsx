@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuestionEditor } from '@/components/QuestionEditor';
-import { fetchManualById, updateQuiz, updateQuestionText, generateQuestionAssets, deleteQuiz, publishQuizzes } from '@/lib/api';
+import { fetchManualById, updateQuiz, updateQuestionText, generateQuestionAssets, deleteQuiz, deleteQuestion, publishQuizzes } from '@/lib/api';
 import { Manual, Quiz, Question } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -36,7 +36,7 @@ const QuizEditor = () => {
       try {
         const data = await fetchManualById(manualId);
         setManual(data);
-        
+
         // If a specific quiz ID is provided, navigate to it
         const quizId = searchParams.get('quiz');
         if (quizId && data) {
@@ -139,7 +139,7 @@ const QuizEditor = () => {
       try {
         // Generate assets for the new question
         const updatedQuestion = await generateQuestionAssets(manual.id, currentQuiz.id, question);
-        
+
         // Update local state
         setManual(prev => {
           if (!prev) return prev;
@@ -160,7 +160,7 @@ const QuizEditor = () => {
         });
 
         setSavedQuestions(prev => new Set(prev).add(question.id));
-        
+
         toast({
           title: 'Assets Generated',
           description: 'Videos have been created for this question.',
@@ -183,9 +183,9 @@ const QuizEditor = () => {
       // EXISTING question - just update text, no video regeneration
       try {
         await updateQuestionText(manual.id, currentQuiz.id, question);
-        
+
         setSavedQuestions(prev => new Set(prev).add(question.id));
-        
+
         // Clear saved status after a delay
         setTimeout(() => {
           setSavedQuestions(prev => {
@@ -208,26 +208,34 @@ const QuizEditor = () => {
   const handleDeleteQuestion = async (questionId: string) => {
     if (!manual || !currentQuiz) return;
 
-    const updatedQuiz: Quiz = {
-      ...currentQuiz,
-      questions: currentQuiz.questions.filter((q) => q.id !== questionId),
-    };
-
-    setManual({
-      ...manual,
-      quizzes: manual.quizzes.map((q, i) =>
-        i === currentQuizIndex ? updatedQuiz : q
-      ),
-    });
-
     try {
-      await updateQuiz(manual.id, updatedQuiz);
+      // Call backend API to delete the question
+      await deleteQuestion(manual.id, currentQuiz.id, questionId);
+
+      // Update local state
+      const updatedQuiz: Quiz = {
+        ...currentQuiz,
+        questions: currentQuiz.questions.filter((q) => q.id !== questionId),
+      };
+
+      setManual({
+        ...manual,
+        quizzes: manual.quizzes.map((q, i) =>
+          i === currentQuizIndex ? updatedQuiz : q
+        ),
+      });
+
       toast({
         title: 'Question deleted',
         description: 'The question has been removed from the quiz.',
       });
     } catch (error) {
-      console.error('Failed to save:', error);
+      console.error('Failed to delete question:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete question',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -236,19 +244,19 @@ const QuizEditor = () => {
 
     try {
       await deleteQuiz(manual.id, currentQuiz.id);
-      
+
       const updatedQuizzes = manual.quizzes.filter((_, i) => i !== currentQuizIndex);
       setManual({ ...manual, quizzes: updatedQuizzes });
-      
+
       if (currentQuizIndex >= updatedQuizzes.length && updatedQuizzes.length > 0) {
         setCurrentQuizIndex(updatedQuizzes.length - 1);
       }
-      
+
       toast({
         title: 'Quiz deleted',
         description: 'The quiz has been removed.',
       });
-      
+
       if (updatedQuizzes.length === 0) {
         navigate('/');
       }

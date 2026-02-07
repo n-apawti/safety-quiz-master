@@ -1,243 +1,419 @@
-import { Manual, Quiz, Question, GenerateQuizConfig, AddQuizConfig } from './types';
-import { mockManuals, generateMockQuizzes, generateMockQuestion } from './mockData';
+import { Manual, Quiz, Question, GenerateQuizConfig, AddQuizConfig, VideoAssets } from './types';
+import { API_BASE_URL } from './config';
 
-// Simulated API delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+// ============================================================================
+// Backend API Types (matching FastAPI responses)
+// ============================================================================
 
-// In-memory store (will be replaced by FastAPI calls)
-let manuals: Manual[] = [...mockManuals];
+interface BackendDocument {
+  id: string;
+  file_name: string;
+  public_url: string;
+  created_at?: string;
+}
 
-// GET /api/manuals
+interface BackendQuestion {
+  id: string;
+  prompt: string;
+  choices: string[];
+  answer_index: number | null;
+  common_pitfall_index?: number | null;
+  explanation?: string | null;
+  video_assets?: {
+    success_video?: string;
+    failure_video?: string;
+  } | null;
+}
+
+interface BackendQuiz {
+  id: string;
+  title: string;
+  document_id?: string | null;
+  questions: BackendQuestion[];
+  created_at?: string;
+}
+
+// ============================================================================
+// Data Transformation Helpers
+// ============================================================================
+
+function transformBackendQuestion(q: BackendQuestion): Question {
+  return {
+    id: q.id,
+    question: q.prompt,
+    options: q.choices,
+    correct_answer_index: q.answer_index ?? 0,
+    common_pitfall_index: q.common_pitfall_index ?? 0,
+    explanation: q.explanation ?? '',
+    video_assets: {
+      success_video: q.video_assets?.success_video ?? '',
+      failure_video: q.video_assets?.failure_video ?? '',
+    },
+  };
+}
+
+function transformBackendQuiz(quiz: BackendQuiz): Quiz {
+  return {
+    id: quiz.id,
+    name: quiz.title,
+    questions: quiz.questions.map(transformBackendQuestion),
+  };
+}
+
+function transformQuestionToBackend(q: Question): Omit<BackendQuestion, 'id'> {
+  return {
+    prompt: q.question,
+    choices: q.options,
+    answer_index: q.correct_answer_index,
+    common_pitfall_index: q.common_pitfall_index,
+    explanation: q.explanation,
+    video_assets: q.video_assets,
+  };
+}
+
+// ============================================================================
+// API Functions
+// ============================================================================
+
+// GET /documents - fetch all documents with their related quizzes
 export const fetchManuals = async (): Promise<Manual[]> => {
-  await delay(500);
-  return manuals;
-};
+  try {
+    // Fetch all documents
+    const docsRes = await fetch(`${API_BASE_URL}/documents`);
+    if (!docsRes.ok) throw new Error('Failed to fetch documents');
+    const docsData = await docsRes.json();
+    const documents: BackendDocument[] = docsData.items || [];
 
-// GET /api/manuals/:id
-export const fetchManualById = async (id: string): Promise<Manual | null> => {
-  await delay(300);
-  return manuals.find(m => m.id === id) || null;
-};
+    // Fetch all quizzes
+    const quizzesRes = await fetch(`${API_BASE_URL}/quiz`);
+    if (!quizzesRes.ok) throw new Error('Failed to fetch quizzes');
+    const quizzes: BackendQuiz[] = await quizzesRes.json();
 
-// GET /api/quizzes/:id
-export const fetchQuizById = async (quizId: string): Promise<{ quiz: Quiz; manualId: string } | null> => {
-  await delay(300);
-  for (const manual of manuals) {
-    const quiz = manual.quizzes.find(q => q.id === quizId);
-    if (quiz) {
-      return { quiz, manualId: manual.id };
+    // Group quizzes by document_id
+    const quizzesByDoc = new Map<string, BackendQuiz[]>();
+    const orphanQuizzes: BackendQuiz[] = [];
+
+    for (const quiz of quizzes) {
+      if (quiz.document_id) {
+        const existing = quizzesByDoc.get(quiz.document_id) || [];
+        existing.push(quiz);
+        quizzesByDoc.set(quiz.document_id, existing);
+      } else {
+        orphanQuizzes.push(quiz);
+      }
     }
+
+    // Transform documents to manuals
+    const manuals: Manual[] = documents.map((doc) => ({
+      id: doc.id,
+      name: doc.file_name.replace(/\.[^/.]+$/, ''), // Remove file extension for display
+      filename: doc.file_name,
+      uploadedAt: doc.created_at || new Date().toISOString(),
+      quizzes: (quizzesByDoc.get(doc.id) || []).map(transformBackendQuiz),
+    }));
+
+    // If there are orphan quizzes (no document_id), create a virtual manual for them
+    if (orphanQuizzes.length > 0) {
+      manuals.unshift({
+        id: 'orphan-quizzes',
+        name: 'Standalone Quizzes',
+        filename: '',
+        uploadedAt: new Date().toISOString(),
+        quizzes: orphanQuizzes.map(transformBackendQuiz),
+      });
+    }
+
+    return manuals;
+  } catch (error) {
+    console.error('fetchManuals error:', error);
+    return [];
   }
-  return null;
 };
 
-// POST /api/manuals/upload
+// GET /documents/:id - fetch a single document with its quizzes
+export const fetchManualById = async (id: string): Promise<Manual | null> => {
+  try {
+    // Special case for orphan quizzes
+    if (id === 'orphan-quizzes') {
+      const quizzesRes = await fetch(`${API_BASE_URL}/quiz`);
+      if (!quizzesRes.ok) throw new Error('Failed to fetch quizzes');
+      const quizzes: BackendQuiz[] = await quizzesRes.json();
+      const orphanQuizzes = quizzes.filter((q) => !q.document_id);
+
+      return {
+        id: 'orphan-quizzes',
+        name: 'Standalone Quizzes',
+        filename: '',
+        uploadedAt: new Date().toISOString(),
+        quizzes: orphanQuizzes.map(transformBackendQuiz),
+      };
+    }
+
+    // Fetch document
+    const docRes = await fetch(`${API_BASE_URL}/documents/${id}`, {
+      redirect: 'manual', // Document endpoint redirects, we just need to verify it exists
+    });
+
+    // The endpoint returns a redirect, so we need to get document info differently
+    // Fetch all documents and find the one we need
+    const docsRes = await fetch(`${API_BASE_URL}/documents`);
+    if (!docsRes.ok) throw new Error('Failed to fetch documents');
+    const docsData = await docsRes.json();
+    const documents: BackendDocument[] = docsData.items || [];
+    const doc = documents.find((d) => d.id === id);
+
+    if (!doc) return null;
+
+    // Fetch all quizzes for this document
+    const quizzesRes = await fetch(`${API_BASE_URL}/quiz`);
+    if (!quizzesRes.ok) throw new Error('Failed to fetch quizzes');
+    const quizzes: BackendQuiz[] = await quizzesRes.json();
+    const docQuizzes = quizzes.filter((q) => q.document_id === id);
+
+    return {
+      id: doc.id,
+      name: doc.file_name.replace(/\.[^/.]+$/, ''),
+      filename: doc.file_name,
+      uploadedAt: doc.created_at || new Date().toISOString(),
+      quizzes: docQuizzes.map(transformBackendQuiz),
+    };
+  } catch (error) {
+    console.error('fetchManualById error:', error);
+    return null;
+  }
+};
+
+// GET /quiz/:id - fetch a single quiz
+export const fetchQuizById = async (
+  quizId: string
+): Promise<{ quiz: Quiz; manualId: string } | null> => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/quiz/${quizId}`);
+    if (!res.ok) return null;
+
+    const backendQuiz: BackendQuiz = await res.json();
+    return {
+      quiz: transformBackendQuiz(backendQuiz),
+      manualId: backendQuiz.document_id || 'orphan-quizzes',
+    };
+  } catch (error) {
+    console.error('fetchQuizById error:', error);
+    return null;
+  }
+};
+
+// POST /documents/upload + POST /documents/:id/generate-quiz
 export const uploadManualAndGenerateQuizzes = async (
   config: GenerateQuizConfig
 ): Promise<{ manual: Manual; quizzes: Quiz[] }> => {
-  await delay(2000); // Simulate processing time
-  
-  const newQuizzes = generateMockQuizzes(config.numQuizzes, config.questionsPerQuiz, config.manualName);
-  
-  const newManual: Manual = {
-    id: `manual-${Date.now()}`,
-    name: config.manualName,
-    filename: config.file?.name || 'unknown.pdf',
-    uploadedAt: new Date().toISOString(),
-    quizzes: newQuizzes,
-  };
-  
-  manuals = [...manuals, newManual];
-  
-  return { manual: newManual, quizzes: newQuizzes };
-};
-
-// POST /api/manuals/:id/quizzes - Add a new quiz to an existing manual
-export const addQuizToManual = async (config: AddQuizConfig): Promise<Quiz> => {
-  await delay(1500); // Simulate generation time
-  
-  const questions: Question[] = [];
-  for (let i = 0; i < config.questionCount; i++) {
-    questions.push(generateMockQuestion(i, config.quizName));
+  if (!config.file) {
+    throw new Error('No file provided');
   }
-  
-  const newQuiz: Quiz = {
-    id: `quiz-${Date.now()}`,
-    name: config.quizName,
-    questions,
-  };
-  
-  manuals = manuals.map(manual => {
-    if (manual.id === config.manualId) {
-      return {
-        ...manual,
-        quizzes: [...manual.quizzes, newQuiz],
-      };
-    }
-    return manual;
+
+  // 1. Upload the document
+  const formData = new FormData();
+  formData.append('file', config.file);
+
+  const uploadRes = await fetch(`${API_BASE_URL}/documents/upload`, {
+    method: 'POST',
+    body: formData,
   });
-  
-  return newQuiz;
+
+  if (!uploadRes.ok) {
+    const error = await uploadRes.json().catch(() => ({}));
+    throw new Error(error.detail || 'Failed to upload document');
+  }
+
+  const uploadData = await uploadRes.json();
+  const docId = uploadData.id;
+
+  // 2. Generate quizzes (one quiz per numQuizzes)
+  const generatedQuizzes: Quiz[] = [];
+
+  for (let i = 0; i < config.numQuizzes; i++) {
+    const quizTitle = `${config.manualName} - Quiz ${i + 1}`;
+    const generateRes = await fetch(
+      `${API_BASE_URL}/documents/${docId}/generate-quiz?num_questions=${config.questionsPerQuiz}&title=${encodeURIComponent(quizTitle)}`,
+      { method: 'POST' }
+    );
+
+    if (!generateRes.ok) {
+      console.error(`Failed to generate quiz ${i + 1}`);
+      continue;
+    }
+
+    const backendQuiz: BackendQuiz = await generateRes.json();
+    generatedQuizzes.push(transformBackendQuiz(backendQuiz));
+  }
+
+  const manual: Manual = {
+    id: docId,
+    name: config.manualName,
+    filename: config.file.name,
+    uploadedAt: new Date().toISOString(),
+    quizzes: generatedQuizzes,
+  };
+
+  return { manual, quizzes: generatedQuizzes };
 };
 
-// PUT /api/quizzes/:id
+// POST /documents/:id/generate-quiz - Add a new quiz to an existing document
+export const addQuizToManual = async (config: AddQuizConfig): Promise<Quiz> => {
+  const generateRes = await fetch(
+    `${API_BASE_URL}/documents/${config.manualId}/generate-quiz?num_questions=${config.questionCount}&title=${encodeURIComponent(config.quizName)}`,
+    { method: 'POST' }
+  );
+
+  if (!generateRes.ok) {
+    const error = await generateRes.json().catch(() => ({}));
+    throw new Error(error.detail || 'Failed to generate quiz');
+  }
+
+  const backendQuiz: BackendQuiz = await generateRes.json();
+  return transformBackendQuiz(backendQuiz);
+};
+
+// PATCH /quiz/:id - Update quiz title
 export const updateQuiz = async (manualId: string, quiz: Quiz): Promise<Quiz> => {
-  await delay(300);
-  
-  manuals = manuals.map(manual => {
-    if (manual.id === manualId) {
-      return {
-        ...manual,
-        quizzes: manual.quizzes.map(q => q.id === quiz.id ? quiz : q),
-      };
-    }
-    return manual;
+  const res = await fetch(`${API_BASE_URL}/quiz/${quiz.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: quiz.name }),
   });
-  
-  return quiz;
+
+  if (!res.ok) {
+    throw new Error('Failed to update quiz');
+  }
+
+  // The backend returns the updated quiz, but we need to refetch to get full data
+  const updatedQuiz = await res.json();
+  return transformBackendQuiz(updatedQuiz);
 };
 
-// PUT /api/questions/:id/text - Update question text only (no video regeneration)
+// PATCH /quiz/:quizId/questions/:questionId - Update question text only
 export const updateQuestionText = async (
-  manualId: string, 
-  quizId: string, 
+  manualId: string,
+  quizId: string,
   question: Question
 ): Promise<Question> => {
-  // Quick update - no video regeneration
-  await delay(300);
-  
-  manuals = manuals.map(manual => {
-    if (manual.id === manualId) {
-      return {
-        ...manual,
-        quizzes: manual.quizzes.map(quiz => {
-          if (quiz.id === quizId) {
-            return {
-              ...quiz,
-              questions: quiz.questions.map(q => 
-                q.id === question.id ? question : q
-              ),
-            };
-          }
-          return quiz;
-        }),
-      };
-    }
-    return manual;
+  const res = await fetch(`${API_BASE_URL}/quiz/${quizId}/questions/${question.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: question.question,
+      choices: question.options,
+      answer_index: question.correct_answer_index,
+    }),
   });
-  
-  console.log(`[API] Question ${question.id} text updated. No video regeneration.`);
-  
-  return question;
+
+  if (!res.ok) {
+    throw new Error('Failed to update question');
+  }
+
+  const updated: BackendQuestion = await res.json();
+  return transformBackendQuestion(updated);
 };
 
-// POST /api/questions/generate - Generate videos for NEW questions only
+// POST /quiz/:quizId/questions - Generate video assets for new questions (stub)
 export const generateQuestionAssets = async (
-  manualId: string, 
-  quizId: string, 
+  manualId: string,
+  quizId: string,
   question: Question
 ): Promise<Question> => {
-  // Longer delay - simulating video generation
-  await delay(3000);
-  
-  // Generate video URLs for the new question
-  const updatedQuestion: Question = {
+  // For now, just return the question with mock video assets
+  // In a real implementation, this would call a video generation endpoint
+  console.log(`[API] Generating assets for question ${question.id}`);
+
+  return {
     ...question,
     video_assets: {
       failure_video: `https://example.com/videos/failure-${Date.now()}.mp4`,
       success_video: `https://example.com/videos/success-${Date.now()}.mp4`,
     },
-    isNew: false, // Mark as no longer new after generation
+    isNew: false,
   };
-  
-  manuals = manuals.map(manual => {
-    if (manual.id === manualId) {
-      return {
-        ...manual,
-        quizzes: manual.quizzes.map(quiz => {
-          if (quiz.id === quizId) {
-            return {
-              ...quiz,
-              questions: quiz.questions.map(q => 
-                q.id === question.id ? updatedQuestion : q
-              ),
-            };
-          }
-          return quiz;
-        }),
-      };
-    }
-    return manual;
-  });
-  
-  console.log(`[API] Question ${question.id} assets generated. Videos created.`);
-  
-  return updatedQuestion;
 };
 
-// PUT /api/questions/:id - Update a single question (triggers video regeneration) - LEGACY
+// PATCH /quiz/:quizId/questions/:questionId - Update question (legacy, with video regen)
 export const updateQuestion = async (
-  manualId: string, 
-  quizId: string, 
+  manualId: string,
+  quizId: string,
   question: Question
 ): Promise<Question> => {
-  // Simulate video regeneration delay (longer than normal save)
-  await delay(2000);
-  
-  // Generate new video URLs to simulate regeneration
-  const updatedQuestion: Question = {
-    ...question,
-    video_assets: {
-      failure_video: `https://example.com/videos/failure-${Date.now()}.mp4`,
-      success_video: `https://example.com/videos/success-${Date.now()}.mp4`,
-    },
-  };
-  
-  manuals = manuals.map(manual => {
-    if (manual.id === manualId) {
-      return {
-        ...manual,
-        quizzes: manual.quizzes.map(quiz => {
-          if (quiz.id === quizId) {
-            return {
-              ...quiz,
-              questions: quiz.questions.map(q => 
-                q.id === question.id ? updatedQuestion : q
-              ),
-            };
-          }
-          return quiz;
-        }),
-      };
-    }
-    return manual;
+  const res = await fetch(`${API_BASE_URL}/quiz/${quizId}/questions/${question.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: question.question,
+      choices: question.options,
+      answer_index: question.correct_answer_index,
+    }),
   });
-  
-  console.log(`[API] Question ${question.id} updated. Video regeneration triggered.`);
-  
-  return updatedQuestion;
+
+  if (!res.ok) {
+    throw new Error('Failed to update question');
+  }
+
+  const updated: BackendQuestion = await res.json();
+  return transformBackendQuestion(updated);
 };
 
-// DELETE /api/quizzes/:id
+// DELETE /quiz/:quizId/questions/:questionId
+export const deleteQuestion = async (
+  manualId: string,
+  quizId: string,
+  questionId: string
+): Promise<void> => {
+  const res = await fetch(`${API_BASE_URL}/quiz/${quizId}/questions/${questionId}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok && res.status !== 204) {
+    throw new Error('Failed to delete question');
+  }
+
+  console.log(`[API] Question ${questionId} deleted from quiz ${quizId}`);
+};
+
+// POST /quiz/:quizId/questions - Add a new question
+export const addQuestion = async (
+  manualId: string,
+  quizId: string,
+  question: Omit<Question, 'id'>
+): Promise<Question> => {
+  const res = await fetch(`${API_BASE_URL}/quiz/${quizId}/questions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: question.question,
+      choices: question.options,
+      answer_index: question.correct_answer_index,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to add question');
+  }
+
+  const created: BackendQuestion = await res.json();
+  return transformBackendQuestion(created);
+};
+
+// DELETE /quiz/:id
 export const deleteQuiz = async (manualId: string, quizId: string): Promise<void> => {
-  await delay(300);
-  
-  manuals = manuals.map(manual => {
-    if (manual.id === manualId) {
-      return {
-        ...manual,
-        quizzes: manual.quizzes.filter(q => q.id !== quizId),
-      };
-    }
-    return manual;
+  const res = await fetch(`${API_BASE_URL}/quiz/${quizId}`, {
+    method: 'DELETE',
   });
-  
-  console.log(`[API] Quiz ${quizId} deleted from manual ${manualId}`);
+
+  if (!res.ok && res.status !== 204) {
+    throw new Error('Failed to delete quiz');
+  }
+
+  console.log(`[API] Quiz ${quizId} deleted`);
 };
 
-// POST /api/quizzes/:id/publish
+// POST /quiz/:id/publish (stub - can be expanded for actual video attachment)
 export const publishQuizzes = async (manualId: string): Promise<void> => {
-  await delay(1000);
-  // In a real app, this would trigger video attachment on the backend
-  console.log(`Publishing quizzes for manual ${manualId}`);
+  console.log(`[API] Publishing quizzes for manual ${manualId}`);
+  // In a real implementation, this would trigger video attachment on the backend
 };
