@@ -6,14 +6,14 @@ import { Label } from '@/components/ui/label';
 import { ExplanationVideo } from './ExplanationVideo';
 
 interface WrongAnswerSectionProps {
-  wrongVideoUrl: string;
-  correctVideoUrl: string;
+  failureVideoUrl: string;
+  successVideoUrl: string;
   onRetry: () => void;
 }
 
 export const WrongAnswerSection = ({
-  wrongVideoUrl,
-  correctVideoUrl,
+  failureVideoUrl,
+  successVideoUrl,
   onRetry,
 }: WrongAnswerSectionProps) => {
   const [wrongVideoWatched, setWrongVideoWatched] = useState(false);
@@ -50,20 +50,20 @@ export const WrongAnswerSection = ({
           📚 Safety Explanation
         </h3>
 
-        {/* Video 1: What went wrong */}
+        {/* Video 1: The Mistake / What NOT to do */}
         <ExplanationVideo
-          label="What went wrong (Example of what NOT to do)"
+          label="The Mistake / What NOT to do"
           labelIcon="❌"
-          videoUrl={wrongVideoUrl}
+          videoUrl={failureVideoUrl}
           subtitlesEnabled={subtitlesEnabled}
           onWatched={() => setWrongVideoWatched(true)}
         />
 
-        {/* Video 2: Correct Procedure */}
+        {/* Video 2: The Solution / What to do */}
         <ExplanationVideo
-          label="Correct Procedure (What to do)"
+          label="The Solution / What to do"
           labelIcon="✅"
-          videoUrl={correctVideoUrl}
+          videoUrl={successVideoUrl}
           subtitlesEnabled={subtitlesEnabled}
           onWatched={() => setCorrectVideoWatched(true)}
         />
@@ -71,10 +71,10 @@ export const WrongAnswerSection = ({
         {/* Watch Progress Indicator */}
         <div className="flex items-center gap-4 text-sm">
           <span className={wrongVideoWatched ? 'text-success' : 'text-muted-foreground'}>
-            {wrongVideoWatched ? '✓' : '○'} Wrong example video
+            {wrongVideoWatched ? '✓' : '○'} Mistake video
           </span>
           <span className={correctVideoWatched ? 'text-success' : 'text-muted-foreground'}>
-            {correctVideoWatched ? '✓' : '○'} Correct procedure video
+            {correctVideoWatched ? '✓' : '○'} Solution video
           </span>
         </div>
       </div>
