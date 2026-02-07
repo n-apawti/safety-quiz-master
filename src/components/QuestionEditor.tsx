@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Question, Option } from '@/lib/types';
+import { Question } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface QuestionEditorProps {
@@ -32,11 +32,9 @@ export const QuestionEditor = ({
   // Track if question content has changed
   useEffect(() => {
     const hasTextChanges = 
-      question.text !== originalRef.current.text ||
-      question.options.some((opt, i) => 
-        opt.text !== originalRef.current.options[i]?.text ||
-        opt.isCorrect !== originalRef.current.options[i]?.isCorrect
-      );
+      question.question !== originalRef.current.question ||
+      question.options.some((opt, i) => opt !== originalRef.current.options[i]) ||
+      question.correct_answer_index !== originalRef.current.correct_answer_index;
     setHasChanges(hasTextChanges);
   }, [question]);
 
@@ -49,25 +47,22 @@ export const QuestionEditor = ({
   }, [isSaved, isGenerating, question]);
 
   const handleQuestionTextChange = (text: string) => {
-    onUpdate({ ...question, text });
+    onUpdate({ ...question, question: text });
   };
 
-  const handleOptionTextChange = (optionId: string, text: string) => {
+  const handleOptionTextChange = (optionIndex: number, text: string) => {
+    const newOptions = [...question.options];
+    newOptions[optionIndex] = text;
     onUpdate({
       ...question,
-      options: question.options.map((opt) =>
-        opt.id === optionId ? { ...opt, text } : opt
-      ),
+      options: newOptions,
     });
   };
 
-  const handleCorrectOptionChange = (optionId: string) => {
+  const handleCorrectOptionChange = (optionIndex: number) => {
     const updatedQuestion = {
       ...question,
-      options: question.options.map((opt) => ({
-        ...opt,
-        isCorrect: opt.id === optionId,
-      })),
+      correct_answer_index: optionIndex,
     };
     onUpdate(updatedQuestion);
     // Immediately save when correct answer changes
@@ -80,7 +75,7 @@ export const QuestionEditor = ({
     }
   };
 
-  const optionLabels = ['A', 'B', 'C'];
+  const optionLabels = ['A', 'B', 'C', 'D'];
   const isNewQuestion = question.isNew;
 
   return (
@@ -140,7 +135,7 @@ export const QuestionEditor = ({
           <Label htmlFor={`question-${question.id}`}>Question Text</Label>
           <Input
             id={`question-${question.id}`}
-            value={question.text}
+            value={question.question}
             onChange={(e) => handleQuestionTextChange(e.target.value)}
             onBlur={handleBlur}
             placeholder="Enter question text..."
@@ -150,36 +145,39 @@ export const QuestionEditor = ({
 
         <div className="space-y-3">
           <Label>Answer Options</Label>
-          {question.options.map((option, optIndex) => (
-            <div key={option.id} className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleCorrectOptionChange(option.id)}
-                disabled={isGenerating}
-                className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all font-medium text-sm',
-                  option.isCorrect
-                    ? 'border-success bg-success text-success-foreground'
-                    : 'border-border hover:border-primary/50 text-muted-foreground',
-                  isGenerating && 'opacity-50 cursor-not-allowed'
-                )}
-              >
-                {option.isCorrect ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  optionLabels[optIndex]
-                )}
-              </button>
-              <Input
-                value={option.text}
-                onChange={(e) => handleOptionTextChange(option.id, e.target.value)}
-                onBlur={handleBlur}
-                placeholder={`Option ${optionLabels[optIndex]}...`}
-                className="flex-1"
-                disabled={isGenerating}
-              />
-            </div>
-          ))}
+          {question.options.map((option, optIndex) => {
+            const isCorrect = optIndex === question.correct_answer_index;
+            return (
+              <div key={optIndex} className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleCorrectOptionChange(optIndex)}
+                  disabled={isGenerating}
+                  className={cn(
+                    'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all font-medium text-sm',
+                    isCorrect
+                      ? 'border-success bg-success text-success-foreground'
+                      : 'border-border hover:border-primary/50 text-muted-foreground',
+                    isGenerating && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  {isCorrect ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    optionLabels[optIndex]
+                  )}
+                </button>
+                <Input
+                  value={option}
+                  onChange={(e) => handleOptionTextChange(optIndex, e.target.value)}
+                  onBlur={handleBlur}
+                  placeholder={`Option ${optionLabels[optIndex]}...`}
+                  className="flex-1"
+                  disabled={isGenerating}
+                />
+              </div>
+            );
+          })}
           <p className="text-xs text-muted-foreground">
             Click the letter to mark the correct answer • Changes auto-save on blur
           </p>

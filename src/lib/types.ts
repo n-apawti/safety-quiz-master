@@ -1,15 +1,15 @@
-export interface Option {
-  id: string;
-  text: string;
-  isCorrect: boolean;
+export interface VideoAssets {
+  success_video: string;
+  failure_video: string;
 }
 
 export interface Question {
   id: string;
-  text: string;
-  options: Option[];
-  failureVideoUrl: string;
-  successVideoUrl: string;
+  question: string;
+  options: string[];
+  correct_answer_index: number;
+  common_pitfall_index: number;
+  video_assets: VideoAssets;
   isRegenerating?: boolean;
   isNew?: boolean; // Flag for newly added questions that need asset generation
 }

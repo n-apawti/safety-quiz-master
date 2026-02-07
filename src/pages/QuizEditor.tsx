@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { QuestionEditor } from '@/components/QuestionEditor';
 import { fetchManualById, updateQuiz, updateQuestionText, generateQuestionAssets, deleteQuiz, publishQuizzes } from '@/lib/api';
-import { Manual, Quiz, Question, Option } from '@/lib/types';
+import { Manual, Quiz, Question } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
@@ -68,14 +68,14 @@ const QuizEditor = () => {
 
     const newQuestion: Question = {
       id: `question-${Date.now()}`,
-      text: '',
-      options: [
-        { id: `opt-${Date.now()}-1`, text: '', isCorrect: true },
-        { id: `opt-${Date.now()}-2`, text: '', isCorrect: false },
-        { id: `opt-${Date.now()}-3`, text: '', isCorrect: false },
-      ],
-      failureVideoUrl: '',
-      successVideoUrl: '',
+      question: '',
+      options: ['', '', ''],
+      correct_answer_index: 0,
+      common_pitfall_index: 1,
+      video_assets: {
+        failure_video: '',
+        success_video: '',
+      },
       isNew: true, // Mark as new - needs asset generation
     };
 
@@ -123,7 +123,7 @@ const QuizEditor = () => {
     // Check if this is a NEW question (needs asset generation)
     if (question.isNew) {
       // Validate that the question has content
-      if (!question.text.trim() || question.options.some(o => !o.text.trim())) {
+      if (!question.question.trim() || question.options.some(o => !o.trim())) {
         toast({
           title: 'Incomplete Question',
           description: 'Please fill in all fields before saving.',

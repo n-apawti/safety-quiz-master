@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X, Monitor, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { fetchQuizById } from '@/lib/api';
-import { Quiz, Question } from '@/lib/types';
+import { Quiz } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 const PresentationMode = () => {
@@ -149,37 +149,40 @@ const PresentationMode = () => {
             </div>
             
             <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-12 leading-tight">
-              {currentQuestion.text}
+              {currentQuestion.question}
             </h2>
 
             <div className="grid gap-4">
-              {currentQuestion.options.map((option, index) => (
-                <div
-                  key={option.id}
-                  className={cn(
-                    "flex items-center gap-6 p-6 rounded-2xl border-2 transition-all",
-                    showAnswer && option.isCorrect
-                      ? "border-success bg-success/10"
-                      : "border-border bg-card"
-                  )}
-                >
-                  <span className={cn(
-                    "flex items-center justify-center w-14 h-14 rounded-xl text-xl font-bold shrink-0",
-                    showAnswer && option.isCorrect
-                      ? "bg-success text-success-foreground"
-                      : "bg-muted text-muted-foreground"
-                  )}>
-                    {showAnswer && option.isCorrect ? (
-                      <CheckCircle2 className="h-7 w-7" />
-                    ) : (
-                      optionLabels[index]
+              {currentQuestion.options.map((option, index) => {
+                const isCorrect = index === currentQuestion.correct_answer_index;
+                return (
+                  <div
+                    key={index}
+                    className={cn(
+                      "flex items-center gap-6 p-6 rounded-2xl border-2 transition-all",
+                      showAnswer && isCorrect
+                        ? "border-success bg-success/10"
+                        : "border-border bg-card"
                     )}
-                  </span>
-                  <span className="text-2xl md:text-3xl text-foreground">
-                    {option.text}
-                  </span>
-                </div>
-              ))}
+                  >
+                    <span className={cn(
+                      "flex items-center justify-center w-14 h-14 rounded-xl text-xl font-bold shrink-0",
+                      showAnswer && isCorrect
+                        ? "bg-success text-success-foreground"
+                        : "bg-muted text-muted-foreground"
+                    )}>
+                      {showAnswer && isCorrect ? (
+                        <CheckCircle2 className="h-7 w-7" />
+                      ) : (
+                        optionLabels[index]
+                      )}
+                    </span>
+                    <span className="text-2xl md:text-3xl text-foreground">
+                      {option}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Show Answer Toggle */}

@@ -2,68 +2,84 @@ import { Manual, Quiz, Question } from './types';
 
 const safetyQuestions = [
   {
-    text: "What is the correct procedure when entering a confined space?",
+    question: "What is the correct procedure when entering a confined space?",
     options: [
-      { text: "Enter immediately and assess hazards", isCorrect: false },
-      { text: "Complete a confined space permit and atmospheric testing", isCorrect: true },
-      { text: "Ask a coworker to watch while you enter", isCorrect: false },
+      "Enter immediately and assess hazards",
+      "Complete a confined space permit and atmospheric testing",
+      "Ask a coworker to watch while you enter",
     ],
+    correct_answer_index: 1,
+    common_pitfall_index: 0,
   },
   {
-    text: "When should you wear Personal Protective Equipment (PPE)?",
+    question: "When should you wear Personal Protective Equipment (PPE)?",
     options: [
-      { text: "Only when supervisor is present", isCorrect: false },
-      { text: "When hazards are identified that require PPE use", isCorrect: true },
-      { text: "Only during emergency situations", isCorrect: false },
+      "Only when supervisor is present",
+      "When hazards are identified that require PPE use",
+      "Only during emergency situations",
     ],
+    correct_answer_index: 1,
+    common_pitfall_index: 0,
   },
   {
-    text: "What is the first step in the Lockout/Tagout procedure?",
+    question: "What is the first step in the Lockout/Tagout procedure?",
     options: [
-      { text: "Apply the lockout device", isCorrect: false },
-      { text: "Notify affected employees", isCorrect: true },
-      { text: "Turn off the equipment", isCorrect: false },
+      "Apply the lockout device",
+      "Notify affected employees",
+      "Turn off the equipment",
     ],
+    correct_answer_index: 1,
+    common_pitfall_index: 0,
   },
   {
-    text: "How should you report a workplace hazard?",
+    question: "How should you report a workplace hazard?",
     options: [
-      { text: "Wait until the next safety meeting", isCorrect: false },
-      { text: "Only report if someone gets injured", isCorrect: false },
-      { text: "Report immediately to your supervisor", isCorrect: true },
+      "Wait until the next safety meeting",
+      "Only report if someone gets injured",
+      "Report immediately to your supervisor",
     ],
+    correct_answer_index: 2,
+    common_pitfall_index: 0,
   },
   {
-    text: "What is the purpose of a Safety Data Sheet (SDS)?",
+    question: "What is the purpose of a Safety Data Sheet (SDS)?",
     options: [
-      { text: "To provide information about chemical hazards and safe handling", isCorrect: true },
-      { text: "To track inventory levels", isCorrect: false },
-      { text: "To record employee training", isCorrect: false },
+      "To provide information about chemical hazards and safe handling",
+      "To track inventory levels",
+      "To record employee training",
     ],
+    correct_answer_index: 0,
+    common_pitfall_index: 1,
   },
   {
-    text: "What should you do before lifting a heavy object?",
+    question: "What should you do before lifting a heavy object?",
     options: [
-      { text: "Lift quickly to minimize strain", isCorrect: false },
-      { text: "Assess the weight and plan your lift path", isCorrect: true },
-      { text: "Ask someone to help without assessing first", isCorrect: false },
+      "Lift quickly to minimize strain",
+      "Assess the weight and plan your lift path",
+      "Ask someone to help without assessing first",
     ],
+    correct_answer_index: 1,
+    common_pitfall_index: 0,
   },
   {
-    text: "When is it appropriate to bypass a safety guard on machinery?",
+    question: "When is it appropriate to bypass a safety guard on machinery?",
     options: [
-      { text: "When working alone to speed up the process", isCorrect: false },
-      { text: "Never - guards must remain in place during operation", isCorrect: true },
-      { text: "When the guard is inconvenient", isCorrect: false },
+      "When working alone to speed up the process",
+      "Never - guards must remain in place during operation",
+      "When the guard is inconvenient",
     ],
+    correct_answer_index: 1,
+    common_pitfall_index: 0,
   },
   {
-    text: "What is the correct response to a fire alarm?",
+    question: "What is the correct response to a fire alarm?",
     options: [
-      { text: "Continue working until you see flames", isCorrect: false },
-      { text: "Evacuate using designated routes immediately", isCorrect: true },
-      { text: "Investigate the source of the alarm", isCorrect: false },
+      "Continue working until you see flames",
+      "Evacuate using designated routes immediately",
+      "Investigate the source of the alarm",
     ],
+    correct_answer_index: 1,
+    common_pitfall_index: 0,
   },
 ];
 
@@ -72,14 +88,14 @@ export const generateMockQuestion = (index: number, prefix: string): Question =>
   const timestamp = Date.now();
   return {
     id: `q-${timestamp}-${index}`,
-    text: questionData.text,
-    options: questionData.options.map((opt, optIndex) => ({
-      id: `opt-${timestamp}-${index}-${optIndex}`,
-      text: opt.text,
-      isCorrect: opt.isCorrect,
-    })),
-    failureVideoUrl: `https://example.com/videos/failure-${prefix}-${index}.mp4`,
-    successVideoUrl: `https://example.com/videos/success-${prefix}-${index}.mp4`,
+    question: questionData.question,
+    options: questionData.options,
+    correct_answer_index: questionData.correct_answer_index,
+    common_pitfall_index: questionData.common_pitfall_index,
+    video_assets: {
+      failure_video: `https://example.com/videos/failure-${prefix}-${index}.mp4`,
+      success_video: `https://example.com/videos/success-${prefix}-${index}.mp4`,
+    },
   };
 };
 
@@ -88,14 +104,14 @@ const generateMockQuestions = (count: number, quizIndex: number): Question[] => 
     const questionData = safetyQuestions[(quizIndex * count + i) % safetyQuestions.length];
     return {
       id: `q-${quizIndex}-${i}`,
-      text: questionData.text,
-      options: questionData.options.map((opt, optIndex) => ({
-        id: `opt-${quizIndex}-${i}-${optIndex}`,
-        text: opt.text,
-        isCorrect: opt.isCorrect,
-      })),
-      failureVideoUrl: `https://example.com/videos/failure-${quizIndex}-${i}.mp4`,
-      successVideoUrl: `https://example.com/videos/success-${quizIndex}-${i}.mp4`,
+      question: questionData.question,
+      options: questionData.options,
+      correct_answer_index: questionData.correct_answer_index,
+      common_pitfall_index: questionData.common_pitfall_index,
+      video_assets: {
+        failure_video: `https://example.com/videos/failure-${quizIndex}-${i}.mp4`,
+        success_video: `https://example.com/videos/success-${quizIndex}-${i}.mp4`,
+      },
     };
   });
 };
