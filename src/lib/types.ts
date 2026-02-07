@@ -10,6 +10,7 @@ export interface Question {
   correct_answer_index: number;
   common_pitfall_index: number;
   video_assets: VideoAssets;
+  explanation: string;
   isRegenerating?: boolean;
   isNew?: boolean; // Flag for newly added questions that need asset generation
 }

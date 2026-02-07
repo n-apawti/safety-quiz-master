@@ -96,6 +96,7 @@ export const generateMockQuestion = (index: number, prefix: string): Question =>
       failure_video: `https://example.com/videos/failure-${prefix}-${index}.mp4`,
       success_video: `https://example.com/videos/success-${prefix}-${index}.mp4`,
     },
+    explanation: "Follow proper safety procedures to prevent workplace accidents.",
   };
 };
 
@@ -112,6 +113,7 @@ const generateMockQuestions = (count: number, quizIndex: number): Question[] => 
         failure_video: `https://example.com/videos/failure-${quizIndex}-${i}.mp4`,
         success_video: `https://example.com/videos/success-${quizIndex}-${i}.mp4`,
       },
+      explanation: "Follow proper safety procedures to prevent workplace accidents.",
     };
   });
 };
@@ -128,195 +130,167 @@ export const generateMockQuizzes = (numQuizzes: number, questionsPerQuiz: number
 const scissorLiftQuestions: Question[] = [
   {
     id: 'sl-q-1',
-    question: "You are about to operate the machine indoors. The manual says the maximum allowable wind speed indoors is 0 m/s. What should you do if you feel a strong draft or air movement?",
+    question: "Before raising the platform, what must you always check about the ground conditions?",
     options: [
-      "Stop operation and ensure there are no open doors, fans, or sources of wind before continuing.",
-      "Ignore it and continue working since you are inside and wind can't be that dangerous.",
-      "Open more doors or windows to improve ventilation while operating the lift."
+      "Ensure the machine is on solid, level ground free of holes and debris.",
+      "Assume the ground is strong enough if it looks dry and hard.",
+      "Only check for water puddles, not for slopes or holes."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator stops the machine, checks all doors/windows, and only resumes when wind sources are controlled.",
-      failure_video: "Visual: Operator ignores strong indoor draft, continues working, and the platform shakes dangerously or tips due to unexpected wind."
-    }
+      success_video: "Visual: Operator inspects the ground, finds a soft spot, moves the machine to a flat, solid area before raising the platform.",
+      failure_video: "Visual: Worker glances at the ground, assumes it's safe, raises the platform; the machine suddenly tips and collapses into a hidden hole."
+    },
+    explanation: "Failing to check for level, solid ground can cause the machine to tip or collapse."
   },
   {
     id: 'sl-q-2',
-    question: "During a pre-operation inspection, you notice a missing safety decal on the platform. What is the correct action?",
+    question: "What is the correct action if the tilt alarm sounds while the platform is elevated?",
     options: [
-      "Stop using the machine and replace the missing safety decal before operation.",
-      "Continue working since you already know the safety rules.",
-      "Cover the area with tape to hide the missing label."
+      "Carefully lower the platform and move the machine to level ground.",
+      "Ignore the alarm and continue working since the platform feels stable.",
+      "Try to reset the alarm by switching the machine off and on."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator halts operation, installs a new decal, and verifies all labels are visible before use.",
-      failure_video: "Visual: Operator shrugs off the missing decal, continues working, and another worker is later injured due to missing safety information."
-    }
+      success_video: "Visual: Operator hears the alarm, slowly lowers the platform, and moves the machine to a safe, level area.",
+      failure_video: "Visual: Worker hears the alarm, shrugs, continues working; the machine tilts further and tips over with the worker on the platform."
+    },
+    explanation: "Ignoring the tilt alarm and continuing work can lead to a tip-over accident."
   },
   {
     id: 'sl-q-3',
-    question: "You need to lift the platform to work near a ceiling. What is the safest way to position the machine?",
+    question: "When should you use the emergency stop button?",
     options: [
-      "Ensure the machine is on solid, level ground and all stabilizers are engaged before lifting.",
-      "Lift the platform while the machine is on a slight incline to get closer to your work.",
-      "Raise the platform on an uneven surface if you move slowly and carefully."
+      "Any time there is a malfunction or unsafe situation.",
+      "Only if someone tells you to.",
+      "Never, as it could damage the machine."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator checks ground, confirms level, engages stabilizers, and lifts the platform safely.",
-      failure_video: "Visual: Operator lifts the platform on an incline; the lift wobbles and tips, causing a near-miss or injury."
-    }
+      success_video: "Visual: Operator notices a malfunction, immediately hits the emergency stop, halting all functions safely.",
+      failure_video: "Visual: Worker hesitates, waits for instructions; the malfunction worsens, resulting in a near-miss or accident."
+    },
+    explanation: "Delaying use of the emergency stop in a dangerous situation can result in injury or damage."
   },
   {
     id: 'sl-q-4',
-    question: "While operating the platform, the tilt alarm sounds. What should you do immediately?",
+    question: "What is the most dangerous way to load tools onto the platform?",
     options: [
-      "Carefully lower the platform and move the machine to solid, level ground.",
-      "Ignore the alarm if you are almost done with your task.",
-      "Use the tilt alarm as a guide to keep working until it stops."
+      "Securely place tools within the platform's guardrails, ensuring nothing overhangs.",
+      "Hang tools and materials on the outside of the guardrails to save space.",
+      "Leave tools on the ground and retrieve them one by one while elevated."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator hears alarm, lowers platform, and relocates to a flat area before resuming work.",
-      failure_video: "Visual: Operator ignores the alarm, continues working, and the platform tips dangerously."
-    }
+      success_video: "Visual: Operator places all tools inside the platform, checks that nothing is overhanging.",
+      failure_video: "Visual: Worker hangs a heavy tool bag over the guardrail; the platform becomes unstable and tips, or a tool falls and nearly hits someone below."
+    },
+    explanation: "Hanging tools outside the guardrails increases the risk of tipping and falling objects."
   },
   {
     id: 'sl-q-5',
-    question: "You need to move the machine with the platform raised. What is the correct procedure?",
+    question: "How should you respond if you notice hydraulic oil leaking from the machine during inspection?",
     options: [
-      "Only drive at a maximum speed of 0.8 km/h (0.5 mph) on flat, stable ground with the platform raised.",
-      "Drive at regular speed because the lift is designed for movement when raised.",
-      "Move quickly to save time, as long as you watch for obstacles."
+      "Stop operation and report the issue for immediate repair.",
+      "Wipe away the oil and continue using the machine if the leak seems small.",
+      "Try to tighten random bolts to stop the leak yourself."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator moves the machine slowly and carefully with the platform up, staying on flat ground.",
-      failure_video: "Visual: Operator drives at normal speed with the platform up, causing the lift to sway and nearly tip."
-    }
+      success_video: "Visual: Operator notices a leak, tags the machine out of service, and calls maintenance.",
+      failure_video: "Visual: Worker wipes away the oil, keeps working; later, the hydraulic system fails and the platform collapses unexpectedly."
+    },
+    explanation: "Ignoring or patching up leaks without proper repair can lead to sudden machine failure or fire hazards."
   },
   {
     id: 'sl-q-6',
-    question: "You are about to perform maintenance and need to access the hydraulic system. What is the first step?",
+    question: "What is the correct procedure before operating the machine each shift?",
     options: [
-      "Turn off the ground controller, remove the key, and disconnect all power before starting maintenance.",
-      "Just open the panel and begin work since you are careful.",
-      "Only turn off the emergency stop button on the platform controller."
+      "Perform a full pre-operation inspection and function test as described in the manual.",
+      "Ask the previous operator if the machine was working fine and skip the inspection.",
+      "Only check the battery level if you're in a rush."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Technician powers down, removes key, and locks out power before touching hydraulic components.",
-      failure_video: "Visual: Technician opens the panel with power still connected, causing accidental machine movement or hydraulic spray."
-    }
+      success_video: "Visual: Operator goes through the checklist, finds a loose guardrail, fixes it before use.",
+      failure_video: "Visual: Worker asks a coworker if it's fine, starts the machine; a missed defect causes a safety incident."
+    },
+    explanation: "Skipping the required inspection can result in using a damaged or unsafe machine."
   },
   {
     id: 'sl-q-7',
-    question: "You need to charge the battery after your shift. What is the correct charging procedure?",
+    question: "What is the safest way to enter and exit the platform?",
     options: [
-      "Charge the battery using the manufacturer-supplied charger in a well-ventilated area, away from flames or sparks.",
-      "Charge the battery anywhere, even near welding or grinding operations.",
-      "Use any available charger, as long as it fits the battery terminals."
+      "Only enter or exit when the platform is fully lowered and the entry gate is closed after entry.",
+      "Climb over the guardrails if the platform is not perfectly aligned with the ground.",
+      "Jump down from the platform if you are in a hurry."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator connects the correct charger in a ventilated area, posts a warning sign, and keeps away ignition sources.",
-      failure_video: "Visual: Operator charges the battery near welding sparks; battery gases ignite, causing a flash fire."
-    }
+      success_video: "Visual: Worker waits until the platform is fully lowered, opens the gate, and steps safely onto the ground.",
+      failure_video: "Visual: Worker climbs over the guardrail, slips, and falls from the platform."
+    },
+    explanation: "Climbing over guardrails or jumping can result in falls and serious injuries."
   },
   {
     id: 'sl-q-8',
-    question: "While working, you want to bring extra tools onto the platform. What should you do?",
+    question: "What is the correct response if the overload alarm sounds and the platform stops moving?",
     options: [
-      "Only bring tools that do not exceed the platform's rated load and never attach extra toolboxes to the guardrail.",
-      "Hang a heavy toolbox on the guardrail for convenience.",
-      "Pile tools in the corner of the platform floor, ignoring the weight limit."
+      "Remove excess weight from the platform until the alarm stops.",
+      "Ignore the alarm and try to move the platform again.",
+      "Have a coworker climb up and help push the controls."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator checks the load, keeps tools on the floor, and avoids overloading or attaching boxes to rails.",
-      failure_video: "Visual: Operator hangs a toolbox on the guardrail; the added weight causes the platform to tilt or overload the guardrail, risking collapse."
-    }
+      success_video: "Visual: Operator removes a heavy toolbox from the platform, alarm stops, platform resumes normal operation.",
+      failure_video: "Visual: Worker ignores the alarm, repeatedly tries to move the platform; the platform suddenly drops or fails."
+    },
+    explanation: "Ignoring the overload alarm risks equipment failure or collapse."
   },
   {
     id: 'sl-q-9',
-    question: "You notice an oil leak under the machine during your pre-operation inspection. What is the proper response?",
+    question: "When is it safe to drive the machine with the platform raised?",
     options: [
-      "Stop operation and report the leak for repair before using the machine.",
-      "Wipe up the oil and continue working if the leak seems small.",
-      "Ignore the leak; it is probably not important."
+      "Only at low speed (max 0.8 km/h) on level, stable ground with no obstacles.",
+      "At any speed if you are careful and watch for obstacles.",
+      "On rough or sloped ground to save time moving between tasks."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator finds leak, tags the machine out of service, and calls for maintenance.",
-      failure_video: "Visual: Operator wipes up the leak and continues working; later, the hydraulic system fails, causing loss of control."
-    }
+      success_video: "Visual: Operator drives slowly on a level warehouse floor with the platform raised.",
+      failure_video: "Visual: Worker drives quickly with the platform up, hits a bump, and the machine tips over."
+    },
+    explanation: "Driving fast or on uneven ground with the platform raised is a leading cause of tip-overs."
   },
   {
     id: 'sl-q-10',
-    question: "You are working near overhead power lines. What is the minimum safe distance you must maintain for lines up to 50kV?",
+    question: "What is the correct way to handle battery charging at the end of your shift?",
     options: [
-      "At least 3.05 meters (10 feet) away from the power lines at all times.",
-      "Get as close as needed as long as you do not touch the lines.",
-      "Move the platform slowly under the lines to save time."
+      "Charge the battery in a well-ventilated area, away from open flames, using the correct charger.",
+      "Charge the battery anywhere convenient, even if it's near welding or grinding work.",
+      "Use any available charger, even if it's not the one supplied by the manufacturer."
     ],
     correct_answer_index: 0,
     common_pitfall_index: 1,
     video_assets: {
-      success_video: "Visual: Operator measures and marks a 3-meter boundary, keeps platform well away from power lines.",
-      failure_video: "Visual: Operator moves close to the lines, thinking it's safe if they don't touch; an arc flash jumps to the platform, causing an electrocution incident."
-    }
+      success_video: "Visual: Operator plugs in the charger in a ventilated area, checks for sparks, and keeps flammables away.",
+      failure_video: "Visual: Worker charges the battery next to welding sparks; a fire or explosion occurs."
+    },
+    explanation: "Charging batteries in unsafe areas or with the wrong charger can cause explosions or fires."
   },
 ];
 
 export const mockManuals: Manual[] = [
-  {
-    id: 'manual-1',
-    name: 'Workplace Safety Guidelines',
-    filename: 'workplace_safety_2024.pdf',
-    uploadedAt: '2024-01-15T10:30:00Z',
-    quizzes: [
-      {
-        id: 'quiz-1',
-        name: 'Basic Safety Awareness',
-        questions: generateMockQuestions(5, 0),
-      },
-      {
-        id: 'quiz-2',
-        name: 'Emergency Procedures',
-        questions: generateMockQuestions(5, 1),
-      },
-    ],
-  },
-  {
-    id: 'manual-2',
-    name: 'Chemical Handling Procedures',
-    filename: 'chemical_handling_v3.pdf',
-    uploadedAt: '2024-02-20T14:45:00Z',
-    quizzes: [
-      {
-        id: 'quiz-3',
-        name: 'Chemical Safety Basics',
-        questions: generateMockQuestions(8, 2),
-      },
-    ],
-  },
-  {
-    id: 'manual-3',
-    name: 'Equipment Operation Manual',
-    filename: 'equipment_ops_guide.pdf',
-    uploadedAt: '2024-03-10T09:15:00Z',
-    quizzes: [],
-  },
   {
     id: 'manual-4',
     name: 'Scissor Lift Operation Manual',
