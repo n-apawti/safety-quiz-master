@@ -1,18 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import {
-  ArrowLeft,
-  ArrowRight,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Trophy,
-  RotateCcw,
-} from 'lucide-react';
+import { ArrowLeft, Loader2, Trophy, RotateCcw, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { VideoPlayer } from '@/components/VideoPlayer';
+import { WrongAnswerSection } from '@/components/WrongAnswerSection';
+import { CorrectAnswerSection } from '@/components/CorrectAnswerSection';
 import { fetchQuizById } from '@/lib/api';
 import { Quiz, Option } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -22,7 +15,6 @@ type AnswerState = 'unanswered' | 'correct' | 'incorrect';
 interface QuestionState {
   selectedOptionId: string | null;
   answerState: AnswerState;
-  videoWatched: boolean;
 }
 
 const QuizPlayer = () => {
@@ -46,7 +38,6 @@ const QuizPlayer = () => {
             result.quiz.questions.map(() => ({
               selectedOptionId: null,
               answerState: 'unanswered',
-              videoWatched: false,
             }))
           );
         }
@@ -77,15 +68,6 @@ const QuizPlayer = () => {
     setQuestionStates(newStates);
   };
 
-  const handleVideoWatched = () => {
-    const newStates = [...questionStates];
-    newStates[currentQuestionIndex] = {
-      ...newStates[currentQuestionIndex],
-      videoWatched: true,
-    };
-    setQuestionStates(newStates);
-  };
-
   const handleNext = () => {
     if (currentQuestionIndex < (quiz?.questions.length || 0) - 1) {
       setCurrentQuestionIndex((i) => i + 1);
@@ -99,16 +81,8 @@ const QuizPlayer = () => {
     newStates[currentQuestionIndex] = {
       selectedOptionId: null,
       answerState: 'unanswered',
-      videoWatched: false,
     };
     setQuestionStates(newStates);
-  };
-
-  const canProceed = () => {
-    if (!currentState) return false;
-    if (currentState.answerState === 'correct') return true;
-    if (currentState.answerState === 'incorrect' && currentState.videoWatched) return true;
-    return false;
   };
 
   const correctCount = questionStates.filter((s) => s.answerState === 'correct').length;
@@ -162,11 +136,10 @@ const QuizPlayer = () => {
                 variant="outline"
                 onClick={() => {
                   setCurrentQuestionIndex(0);
-                  setQuestionStates(
+                setQuestionStates(
                     quiz.questions.map(() => ({
                       selectedOptionId: null,
                       answerState: 'unanswered',
-                      videoWatched: false,
                     }))
                   );
                   setIsComplete(false);
@@ -228,8 +201,10 @@ const QuizPlayer = () => {
             <div className="space-y-3">
               {currentQuestion?.options.map((option, index) => {
                 const isSelected = currentState?.selectedOptionId === option.id;
+                // Only show correct highlight if user got it right
                 const showCorrect =
-                  currentState?.answerState !== 'unanswered' && option.isCorrect;
+                  currentState?.answerState === 'correct' && option.isCorrect;
+                // Show incorrect highlight only for the selected wrong option
                 const showIncorrect =
                   currentState?.answerState === 'incorrect' && isSelected;
 
@@ -274,91 +249,21 @@ const QuizPlayer = () => {
               })}
             </div>
 
-            {/* Feedback & Video Section */}
+            {/* Feedback Sections */}
             {currentState?.answerState === 'correct' && (
-              <div className="animate-slide-up pt-4">
-                <div className="flex items-center gap-2 p-4 rounded-lg bg-success/10 text-success mb-4">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <span className="font-medium">Correct! Great job.</span>
-                </div>
-                <div className="flex gap-3">
-                  <Button onClick={handleNext} className="gap-2">
-                    {currentQuestionIndex < quiz.questions.length - 1 ? (
-                      <>
-                        Next Question
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    ) : (
-                      'Finish Quiz'
-                    )}
-                  </Button>
-                  {!currentState.videoWatched && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        const videoSection = document.getElementById('video-section');
-                        videoSection?.scrollIntoView({ behavior: 'smooth' });
-                      }}
-                    >
-                      Explain (Video)
-                    </Button>
-                  )}
-                </div>
-                <div id="video-section" className="mt-6">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Optional: Watch the explanation video
-                  </p>
-                  <VideoPlayer
-                    videoUrl={currentQuestion?.videoUrl || ''}
-                    onWatched={handleVideoWatched}
-                  />
-                </div>
-              </div>
+              <CorrectAnswerSection
+                videoUrl={currentQuestion?.videoUrl || ''}
+                isLastQuestion={currentQuestionIndex >= quiz.questions.length - 1}
+                onNext={handleNext}
+              />
             )}
 
             {currentState?.answerState === 'incorrect' && (
-              <div className="animate-slide-up pt-4">
-                <div className="flex items-center gap-2 p-4 rounded-lg bg-destructive/10 text-destructive mb-4">
-                  <XCircle className="h-5 w-5" />
-                  <span className="font-medium">
-                    Incorrect. Please watch the explanation to continue.
-                  </span>
-                </div>
-                <VideoPlayer
-                  videoUrl={currentQuestion?.videoUrl || ''}
-                  onWatched={handleVideoWatched}
-                />
-                <div className="flex gap-3 mt-4">
-                  <Button
-                    onClick={handleRetry}
-                    disabled={!currentState.videoWatched}
-                    variant="outline"
-                    className="gap-2"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Retry Question
-                  </Button>
-                  <Button
-                    onClick={handleNext}
-                    disabled={!currentState.videoWatched}
-                    className="gap-2"
-                  >
-                    {currentQuestionIndex < quiz.questions.length - 1 ? (
-                      <>
-                        Next Question
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    ) : (
-                      'Finish Quiz'
-                    )}
-                  </Button>
-                </div>
-                {!currentState.videoWatched && (
-                  <p className="text-sm text-warning mt-3">
-                    ⚠️ Watch the full explanation video to unlock navigation
-                  </p>
-                )}
-              </div>
+              <WrongAnswerSection
+                wrongVideoUrl={currentQuestion?.videoUrl || ''}
+                correctVideoUrl={currentQuestion?.videoUrl || ''}
+                onRetry={handleRetry}
+              />
             )}
           </CardContent>
         </Card>
