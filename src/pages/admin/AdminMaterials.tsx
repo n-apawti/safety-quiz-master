@@ -58,7 +58,7 @@ const AdminMaterials = () => {
                 Upload your first safety manual to generate quizzes for your team.
               </p>
             </div>
-            <Button className="gap-2" onClick={() => navigate('/upload')}>
+            <Button className="gap-2" onClick={() => navigate(`/${companySlug}/upload`)}>
               <Upload className="h-4 w-4" />
               Upload Your First Manual
             </Button>
