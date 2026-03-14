@@ -12,8 +12,8 @@ interface CompanyContextType {
   error: string | null;
 }
 
-// Export CompanyContext so QuizPlayer can optionally access it
-export { CompanyContext };
+// Exported so components can do optional useContext(CompanyContext) without throwing
+export const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 
 interface CompanyProviderProps {
   slug: string;
