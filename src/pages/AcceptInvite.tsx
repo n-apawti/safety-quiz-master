@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Eye, EyeOff, Loader2, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,27 +18,48 @@ const AcceptInvite = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isDone, setIsDone] = useState(false);
+  const [tokenError, setTokenError] = useState('');
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    // Supabase puts the session in the URL hash after invite click.
-    // onAuthStateChange will fire with event=SIGNED_IN when the token is exchanged.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user) {
-        setUserEmail(session.user.email || '');
-        setIsReady(true);
-      }
-    });
+    const init = async () => {
+      // Parse the URL hash that Supabase appends after invite click
+      // e.g. #access_token=...&refresh_token=...&type=invite
+      const hash = window.location.hash;
+      const params = new URLSearchParams(hash.startsWith('#') ? hash.slice(1) : hash);
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
 
-    // Also check for an existing session (user may have already been exchanged)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserEmail(session.user.email || '');
-        setIsReady(true);
-      }
-    });
+      if (accessToken && refreshToken) {
+        // Exchange the one-time tokens for a live session
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
 
-    return () => subscription.unsubscribe();
+        if (error || !data.session) {
+          setTokenError('This invite link is invalid or has already been used. Please ask your admin to send a new invite.');
+          return;
+        }
+
+        setUserEmail(data.session.user.email ?? '');
+        setIsReady(true);
+
+        // Clear hash from URL bar (cosmetic)
+        window.history.replaceState(null, '', window.location.pathname);
+      } else {
+        // No hash tokens — check if user is already signed in (e.g. page refresh)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUserEmail(session.user.email ?? '');
+          setIsReady(true);
+        } else {
+          setTokenError('No invite token found. Please use the link from your invitation email.');
+        }
+      }
+    };
+
+    init();
   }, []);
 
   const handleSetPassword = async (e: React.FormEvent) => {
@@ -64,7 +85,7 @@ const AcceptInvite = () => {
 
     setIsDone(true);
 
-    // Redirect to correct company home based on their role
+    // Redirect to correct company home based on role
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { navigate('/login'); return; }
@@ -77,15 +98,11 @@ const AcceptInvite = () => {
         .maybeSingle();
 
       setTimeout(() => {
-        if (roleRow) {
-          const slug = (roleRow as any).companies?.slug;
-          if (roleRow.role === 'company_admin' && slug) {
-            navigate(`/${slug}/admin`);
-          } else if (slug) {
-            navigate(`/${slug}`);
-          } else {
-            navigate('/');
-          }
+        const slug = (roleRow as any)?.companies?.slug;
+        if (roleRow?.role === 'company_admin' && slug) {
+          navigate(`/${slug}/admin`);
+        } else if (slug) {
+          navigate(`/${slug}`);
         } else {
           navigate('/');
         }
@@ -120,7 +137,15 @@ const AcceptInvite = () => {
             )}
           </CardHeader>
           <CardContent>
-            {isDone ? (
+            {tokenError ? (
+              <div className="flex flex-col items-center gap-3 py-4 text-center">
+                <AlertCircle className="h-10 w-10 text-destructive" />
+                <p className="text-sm text-muted-foreground">{tokenError}</p>
+                <Button variant="outline" className="mt-2" onClick={() => navigate('/login')}>
+                  Go to Login
+                </Button>
+              </div>
+            ) : isDone ? (
               <div className="flex flex-col items-center gap-3 py-4 text-center">
                 <CheckCircle2 className="h-10 w-10 text-primary" />
                 <p className="font-medium text-foreground">Password set!</p>
