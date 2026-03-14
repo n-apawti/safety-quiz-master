@@ -19,6 +19,7 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { companySlug } = useParams<{ companySlug: string }>();
   const { toast } = useToast();
 
   const formatDate = (dateString: string) => {
