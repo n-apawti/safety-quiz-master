@@ -12,7 +12,8 @@ interface CompanyContextType {
   error: string | null;
 }
 
-const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
+// Export CompanyContext so QuizPlayer can optionally access it
+export { CompanyContext };
 
 interface CompanyProviderProps {
   slug: string;
