@@ -122,7 +122,7 @@ const AcceptInvite = () => {
           <CardContent>
             {isDone ? (
               <div className="flex flex-col items-center gap-3 py-4 text-center">
-                <CheckCircle2 className="h-10 w-10 text-green-500" />
+                <CheckCircle2 className="h-10 w-10 text-primary" />
                 <p className="font-medium text-foreground">Password set!</p>
                 <p className="text-sm text-muted-foreground">Redirecting you now…</p>
               </div>
