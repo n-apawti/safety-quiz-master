@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ShieldCheck, Eye, EyeOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const AcceptInvite = () => {
   const navigate = useNavigate();
+  const { companySlug } = useParams<{ companySlug: string }>();
   const { toast } = useToast();
 
   const [password, setPassword] = useState('');
@@ -84,34 +85,16 @@ const AcceptInvite = () => {
     }
 
     setIsDone(true);
+    setIsLoading(false);
 
-    // Redirect to correct company home based on role
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { navigate('/login'); return; }
-
-      const { data: roleRow } = await supabase
-        .from('user_roles')
-        .select('role, company_id, companies(slug)')
-        .eq('user_id', user.id)
-        .not('company_id', 'is', null)
-        .maybeSingle();
-
-      setTimeout(() => {
-        const slug = (roleRow as any)?.companies?.slug;
-        if (roleRow?.role === 'company_admin' && slug) {
-          navigate(`/${slug}/admin`);
-        } else if (slug) {
-          navigate(`/${slug}`);
-        } else {
-          navigate('/');
-        }
-      }, 1500);
-    } catch {
-      setTimeout(() => navigate('/'), 1500);
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirect to the company home the invite was for
+    setTimeout(() => {
+      if (companySlug) {
+        navigate(`/${companySlug}`);
+      } else {
+        navigate('/');
+      }
+    }, 1500);
   };
 
   return (
