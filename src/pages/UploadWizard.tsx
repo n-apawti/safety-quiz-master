@@ -103,7 +103,7 @@ const UploadWizard = () => {
     setIsGenerating(true);
     try {
       const { manual } = await uploadManualAndGenerateQuizzes(config);
-      navigate(`/editor/${manual.id}`);
+      navigate(`/${companySlug}/editor/${manual.id}`);
     } catch (error) {
       console.error('Failed to generate quizzes:', error);
       setErrors({ general: 'Failed to generate quizzes. Please try again.' });

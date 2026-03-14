@@ -87,7 +87,7 @@ const AdminMaterials = () => {
                       variant="outline"
                       size="sm"
                       className="gap-2"
-                      onClick={() => navigate(`/editor/${manual.id}`)}
+                      onClick={() => navigate(`/${companySlug}/editor/${manual.id}`)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Edit

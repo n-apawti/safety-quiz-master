@@ -196,7 +196,7 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/quiz/${quiz.id}`);
+                          navigate(`/${companySlug}/quiz/${quiz.id}`);
                         }}
                       >
                         Start Quiz
