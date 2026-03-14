@@ -41,6 +41,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<Landing />} />
             <Route path="/home" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/:companySlug/accept-invite" element={<AcceptInvite />} />
@@ -49,7 +50,7 @@ const App = () => (
             <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
 
             {/* Legacy / global admin routes (protected) */}
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><UploadWizard /></ProtectedRoute>} />
             <Route path="/editor/:manualId" element={<ProtectedRoute><QuizEditor /></ProtectedRoute>} />
             <Route path="/quiz/:quizId" element={<ProtectedRoute><QuizPlayer /></ProtectedRoute>} />
