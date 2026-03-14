@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const AcceptInvite = () => {
   const navigate = useNavigate();
+  const { companySlug } = useParams<{ companySlug: string }>();
   const { toast } = useToast();
 
   const [password, setPassword] = useState('');
