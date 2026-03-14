@@ -77,7 +77,7 @@ const AdminQuizzes = () => {
                       variant="outline"
                       size="sm"
                       className="gap-1.5 h-8"
-                      onClick={() => navigate(`/editor/${quiz.manualId}?quiz=${quiz.id}`)}
+                      onClick={() => navigate(`/${companySlug}/editor/${quiz.manualId}?quiz=${quiz.id}`)}
                     >
                       <Pencil className="h-3 w-3" />
                       Edit

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowRight,
@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 
 const UploadWizard = () => {
   const navigate = useNavigate();
+  const { companySlug } = useParams<{ companySlug: string }>();
   const [step, setStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -102,7 +103,7 @@ const UploadWizard = () => {
     setIsGenerating(true);
     try {
       const { manual } = await uploadManualAndGenerateQuizzes(config);
-      navigate(`/editor/${manual.id}`);
+      navigate(`/${companySlug}/editor/${manual.id}`);
     } catch (error) {
       console.error('Failed to generate quizzes:', error);
       setErrors({ general: 'Failed to generate quizzes. Please try again.' });

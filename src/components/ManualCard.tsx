@@ -1,6 +1,6 @@
 import { FileText, ChevronDown, ChevronUp, Calendar, ClipboardList, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { companySlug } = useParams<{ companySlug: string }>();
   const { toast } = useToast();
 
   const formatDate = (dateString: string) => {
@@ -86,7 +87,7 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
 
   const handleEditQuiz = (quizId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/editor/${manual.id}?quiz=${quizId}`);
+    navigate(`/${companySlug}/editor/${manual.id}?quiz=${quizId}`);
   };
 
   return (
@@ -195,7 +196,7 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/quiz/${quiz.id}`);
+                          navigate(`/${companySlug}/quiz/${quiz.id}`);
                         }}
                       >
                         Start Quiz
