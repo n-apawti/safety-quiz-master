@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
           invited_role: role,
           company_name: company?.name,
         },
-        redirectTo: `${Deno.env.get('SITE_URL') || 'https://quiz-guide-hero.lovable.app'}/accept-invite`,
+        redirectTo: `${Deno.env.get('SITE_URL') || 'https://quiz-guide-hero.lovable.app'}/${company?.slug}/accept-invite`,
       }
     );
 
