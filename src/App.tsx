@@ -15,6 +15,7 @@ import QuizEditor from "./pages/QuizEditor";
 import QuizPlayer from "./pages/QuizPlayer";
 import NotFound from "./pages/NotFound";
 import CompanyHome from "./pages/CompanyHome";
+import SuperAdmin from "./pages/SuperAdmin";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminEmployees from "./pages/admin/AdminEmployees";
