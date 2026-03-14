@@ -85,17 +85,24 @@ const AdminEmployees = () => {
     e.preventDefault();
     if (!company) return;
     setIsInviting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke('invite-employee', {
+        body: { email: inviteEmail, role: inviteRole, company_id: company.id },
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
 
-    // Note: Supabase admin.inviteUserByEmail requires a service role key and
-    // must be called from a server-side function. This is a placeholder that
-    // shows the intent — in production, wire this to an Edge Function.
-    toast({
-      title: 'Invite queued',
-      description: `An Edge Function will send an invite to ${inviteEmail}. Set up the invite edge function to complete this flow.`,
-    });
-    setInviteEmail('');
-    setIsDialogOpen(false);
-    setIsInviting(false);
+      if (res.error) throw res.error;
+
+      toast({ title: 'Invite sent!', description: `${inviteEmail} will receive an invitation email.` });
+      setInviteEmail('');
+      setIsDialogOpen(false);
+      loadEmployees();
+    } catch (err: any) {
+      toast({ title: 'Error', description: err?.message || 'Failed to send invite', variant: 'destructive' });
+    } finally {
+      setIsInviting(false);
+    }
   };
 
   const handleRemoveEmployee = async (roleId: string) => {

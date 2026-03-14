@@ -1,5 +1,5 @@
 import { useNavigate, useParams, Outlet, NavLink } from 'react-router-dom';
-import { ShieldCheck, LayoutDashboard, Users, BookOpen, FileText, LogOut, ChevronRight } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Users, BookOpen, FileText, LogOut, ChevronRight, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompany } from '@/contexts/CompanyContext';
