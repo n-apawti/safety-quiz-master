@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { UserPlus, Trash2, Loader2, Mail, Shield, User } from 'lucide-react';
+import { UserPlus, Trash2, Loader2, Mail, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,7 +44,6 @@ const AdminEmployees = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Invite form state
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState<AppRole>('employee');
   const [isInviting, setIsInviting] = useState(false);
@@ -87,24 +86,16 @@ const AdminEmployees = () => {
     if (!company) return;
     setIsInviting(true);
 
-    try {
-      const { data, error } = await supabase.auth.admin.inviteUserByEmail
-        ? { data: null, error: new Error('Use server-side invite') }
-        : { data: null, error: new Error('Admin invite not available client-side') };
-
-      // Fallback: provide invite link info
-      toast({
-        title: 'Invite sent',
-        description: `An invitation would be sent to ${inviteEmail}. Server-side invite required for production.`,
-      });
-      setInviteEmail('');
-      setIsDialogOpen(false);
-    } catch (err: any) {
-      toast({ title: 'Note', description: `Server-side invite endpoint needed. Email: ${inviteEmail}`, variant: 'default' });
-      setIsDialogOpen(false);
-    } finally {
-      setIsInviting(false);
-    }
+    // Note: Supabase admin.inviteUserByEmail requires a service role key and
+    // must be called from a server-side function. This is a placeholder that
+    // shows the intent — in production, wire this to an Edge Function.
+    toast({
+      title: 'Invite queued',
+      description: `An Edge Function will send an invite to ${inviteEmail}. Set up the invite edge function to complete this flow.`,
+    });
+    setInviteEmail('');
+    setIsDialogOpen(false);
+    setIsInviting(false);
   };
 
   const handleRemoveEmployee = async (roleId: string) => {
@@ -207,7 +198,7 @@ const AdminEmployees = () => {
                       <p className="text-sm font-medium text-foreground">
                         {emp.profiles?.display_name || 'Unknown User'}
                       </p>
-                      <p className="text-xs text-muted-foreground">{emp.user_id}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{emp.user_id.slice(0, 8)}…</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -232,12 +223,5 @@ const AdminEmployees = () => {
     </div>
   );
 };
-
-// Fix missing import
-const Users = ({ className }: { className?: string }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-  </svg>
-);
 
 export default AdminEmployees;
