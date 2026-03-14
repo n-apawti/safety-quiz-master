@@ -55,6 +55,8 @@ function createShuffledQuestions(questions: Question[]): ShuffledQuestion[] {
 const QuizPlayer = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
+  const { company } = useCompany();
+  const attemptSaved = useRef(false);
 
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [shuffledQuestions, setShuffledQuestions] = useState<ShuffledQuestion[]>([]);
