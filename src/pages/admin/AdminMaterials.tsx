@@ -36,7 +36,7 @@ const AdminMaterials = () => {
           <h1 className="text-2xl font-bold text-foreground">Materials</h1>
           <p className="text-muted-foreground mt-1">Manage your safety manuals and their quizzes</p>
         </div>
-        <Button className="gap-2" onClick={() => navigate('/upload')}>
+        <Button className="gap-2" onClick={() => navigate(`/${companySlug}/upload`)}>
           <Upload className="h-4 w-4" />
           Upload Manual
         </Button>
@@ -58,7 +58,7 @@ const AdminMaterials = () => {
                 Upload your first safety manual to generate quizzes for your team.
               </p>
             </div>
-            <Button className="gap-2" onClick={() => navigate('/upload')}>
+            <Button className="gap-2" onClick={() => navigate(`/${companySlug}/upload`)}>
               <Upload className="h-4 w-4" />
               Upload Your First Manual
             </Button>
@@ -87,7 +87,7 @@ const AdminMaterials = () => {
                       variant="outline"
                       size="sm"
                       className="gap-2"
-                      onClick={() => navigate(`/editor/${manual.id}`)}
+                      onClick={() => navigate(`/${companySlug}/editor/${manual.id}`)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
                       Edit

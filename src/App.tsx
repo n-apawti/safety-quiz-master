@@ -49,11 +49,8 @@ const App = () => (
             {/* Super Admin portal */}
             <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
 
-            {/* Legacy / global admin routes (protected) */}
+            {/* Legacy dashboard (kept for super admin use) */}
             <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/upload" element={<ProtectedRoute><UploadWizard /></ProtectedRoute>} />
-            <Route path="/editor/:manualId" element={<ProtectedRoute><QuizEditor /></ProtectedRoute>} />
-            <Route path="/quiz/:quizId" element={<ProtectedRoute><QuizPlayer /></ProtectedRoute>} />
 
             {/* Company-scoped routes — all wrapped with CompanyWrapper */}
             <Route
@@ -62,6 +59,26 @@ const App = () => (
                 <ProtectedRoute>
                   <CompanyWrapper>
                     <CompanyHome />
+                  </CompanyWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/:companySlug/upload"
+              element={
+                <ProtectedRoute>
+                  <CompanyWrapper>
+                    <UploadWizard />
+                  </CompanyWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/:companySlug/editor/:manualId"
+              element={
+                <ProtectedRoute>
+                  <CompanyWrapper>
+                    <QuizEditor />
                   </CompanyWrapper>
                 </ProtectedRoute>
               }
