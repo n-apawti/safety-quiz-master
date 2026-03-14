@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import AcceptInvite from "./pages/AcceptInvite";
 import Index from "./pages/Index";
 import UploadWizard from "./pages/UploadWizard";
 import QuizEditor from "./pages/QuizEditor";
@@ -42,6 +43,7 @@ const App = () => (
             {/* Public routes */}
             <Route path="/home" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/accept-invite" element={<AcceptInvite />} />
 
             {/* Super Admin portal */}
             <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
