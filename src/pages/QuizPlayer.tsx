@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useContext } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Loader2, Trophy, RotateCcw, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,8 @@ import { fetchQuizById } from '@/lib/api';
 import { Quiz, Question } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { useCompany } from '@/contexts/CompanyContext';
+// Safe optional import — QuizPlayer can be used both inside and outside CompanyWrapper
+import { CompanyContext } from '@/contexts/CompanyContext';
 
 type AnswerState = 'unanswered' | 'correct' | 'incorrect';
 
