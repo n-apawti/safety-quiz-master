@@ -36,7 +36,7 @@ const AdminMaterials = () => {
           <h1 className="text-2xl font-bold text-foreground">Materials</h1>
           <p className="text-muted-foreground mt-1">Manage your safety manuals and their quizzes</p>
         </div>
-        <Button className="gap-2" onClick={() => navigate('/upload')}>
+        <Button className="gap-2" onClick={() => navigate(`/${companySlug}/upload`)}>
           <Upload className="h-4 w-4" />
           Upload Manual
         </Button>

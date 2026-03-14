@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 
 const UploadWizard = () => {
   const navigate = useNavigate();
+  const { companySlug } = useParams<{ companySlug: string }>();
   const [step, setStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
