@@ -95,6 +95,8 @@ export const generateMockQuestion = (index: number, prefix: string): Question =>
     video_assets: {
       failure_video: `https://example.com/videos/failure-${prefix}-${index}.mp4`,
       success_video: `https://example.com/videos/success-${prefix}-${index}.mp4`,
+      failure_prompt: '',
+      success_prompt: '',
     },
     explanation: "Follow proper safety procedures to prevent workplace accidents.",
   };
