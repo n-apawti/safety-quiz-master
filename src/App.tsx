@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CompanyProvider } from "@/contexts/CompanyContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -23,11 +23,10 @@ import AdminQuizzes from "./pages/admin/AdminQuizzes";
 
 const queryClient = new QueryClient();
 
-/** Wraps company-scoped routes with the CompanyProvider */
+/** Reads :companySlug from route params and provides CompanyContext */
 const CompanyWrapper = ({ children }: { children: React.ReactNode }) => {
-  // Extract slug from the URL at render time
-  const slug = window.location.pathname.split('/')[1];
-  return <CompanyProvider slug={slug}>{children}</CompanyProvider>;
+  const { companySlug } = useParams<{ companySlug: string }>();
+  return <CompanyProvider slug={companySlug || ''}>{children}</CompanyProvider>;
 };
 
 const App = () => (
@@ -48,7 +47,7 @@ const App = () => (
             <Route path="/editor/:manualId" element={<ProtectedRoute><QuizEditor /></ProtectedRoute>} />
             <Route path="/quiz/:quizId" element={<ProtectedRoute><QuizPlayer /></ProtectedRoute>} />
 
-            {/* Company-scoped routes */}
+            {/* Company-scoped routes — all wrapped with CompanyWrapper */}
             <Route
               path="/:companySlug"
               element={
