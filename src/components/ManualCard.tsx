@@ -87,7 +87,7 @@ export const ManualCard = ({ manual, onManualUpdate }: ManualCardProps) => {
 
   const handleEditQuiz = (quizId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/editor/${manual.id}?quiz=${quizId}`);
+    navigate(`/${companySlug}/editor/${manual.id}?quiz=${quizId}`);
   };
 
   return (
