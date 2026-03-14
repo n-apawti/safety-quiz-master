@@ -111,10 +111,33 @@ const QuizPlayer = () => {
     setQuestionStates(newStates);
   };
 
+  const saveAttempt = async (states: QuestionState[]) => {
+    if (attemptSaved.current || !quizId) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user || !company) return;
+    attemptSaved.current = true;
+    const correct = states.filter((s) => s.answerState === 'correct').length;
+    const answersJson = states.map((s, i) => ({
+      question_index: i,
+      selected_index: s.selectedOptionIndex,
+      correct: s.answerState === 'correct',
+    }));
+    await supabase.from('quiz_attempts').insert({
+      user_id: user.id,
+      company_id: company.id,
+      quiz_id: quizId,
+      score: correct,
+      total: states.length,
+      answers_json: answersJson,
+    });
+  };
+
   const handleNext = () => {
     if (currentQuestionIndex < shuffledQuestions.length - 1) {
       setCurrentQuestionIndex((i) => i + 1);
     } else {
+      // Save attempt before showing completion screen
+      saveAttempt(questionStates);
       setIsComplete(true);
     }
   };
