@@ -114,6 +114,8 @@ const generateMockQuestions = (count: number, quizIndex: number): Question[] => 
       video_assets: {
         failure_video: `https://example.com/videos/failure-${quizIndex}-${i}.mp4`,
         success_video: `https://example.com/videos/success-${quizIndex}-${i}.mp4`,
+        failure_prompt: '',
+        success_prompt: '',
       },
       explanation: "Follow proper safety procedures to prevent workplace accidents.",
     };
