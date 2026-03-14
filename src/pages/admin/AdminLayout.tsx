@@ -1,5 +1,5 @@
 import { useNavigate, useParams, Outlet, NavLink } from 'react-router-dom';
-import { ShieldCheck, LayoutDashboard, Users, BookOpen, FileText, LogOut, ChevronRight } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, Users, BookOpen, FileText, LogOut, ChevronRight, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCompany } from '@/contexts/CompanyContext';
@@ -21,6 +21,7 @@ const AdminLayout = () => {
     { to: `/${companySlug}/admin/employees`, icon: Users, label: 'Employees' },
     { to: `/${companySlug}/admin/materials`, icon: BookOpen, label: 'Materials' },
     { to: `/${companySlug}/admin/quizzes`, icon: FileText, label: 'Quizzes' },
+    { to: `/${companySlug}/admin/settings`, icon: Settings, label: 'Settings' },
   ];
 
   return (

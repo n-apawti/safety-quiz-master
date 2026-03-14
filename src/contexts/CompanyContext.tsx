@@ -12,7 +12,8 @@ interface CompanyContextType {
   error: string | null;
 }
 
-const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
+// Exported so components can do optional useContext(CompanyContext) without throwing
+export const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 
 interface CompanyProviderProps {
   slug: string;
