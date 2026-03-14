@@ -95,6 +95,8 @@ export const generateMockQuestion = (index: number, prefix: string): Question =>
     video_assets: {
       failure_video: `https://example.com/videos/failure-${prefix}-${index}.mp4`,
       success_video: `https://example.com/videos/success-${prefix}-${index}.mp4`,
+      failure_prompt: '',
+      success_prompt: '',
     },
     explanation: "Follow proper safety procedures to prevent workplace accidents.",
   };
@@ -112,6 +114,8 @@ const generateMockQuestions = (count: number, quizIndex: number): Question[] => 
       video_assets: {
         failure_video: `https://example.com/videos/failure-${quizIndex}-${i}.mp4`,
         success_video: `https://example.com/videos/success-${quizIndex}-${i}.mp4`,
+        failure_prompt: '',
+        success_prompt: '',
       },
       explanation: "Follow proper safety procedures to prevent workplace accidents.",
     };
@@ -140,7 +144,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator inspects the ground, finds a soft spot, moves the machine to a flat, solid area before raising the platform.",
-      failure_video: "Visual: Worker glances at the ground, assumes it's safe, raises the platform; the machine suddenly tips and collapses into a hidden hole."
+      failure_video: "Visual: Worker glances at the ground, assumes it's safe, raises the platform; the machine suddenly tips and collapses into a hidden hole.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Failing to check for level, solid ground can cause the machine to tip or collapse."
   },
@@ -156,7 +162,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator hears the alarm, slowly lowers the platform, and moves the machine to a safe, level area.",
-      failure_video: "Visual: Worker hears the alarm, shrugs, continues working; the machine tilts further and tips over with the worker on the platform."
+      failure_video: "Visual: Worker hears the alarm, shrugs, continues working; the machine tilts further and tips over with the worker on the platform.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Ignoring the tilt alarm and continuing work can lead to a tip-over accident."
   },
@@ -172,7 +180,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator notices a malfunction, immediately hits the emergency stop, halting all functions safely.",
-      failure_video: "Visual: Worker hesitates, waits for instructions; the malfunction worsens, resulting in a near-miss or accident."
+      failure_video: "Visual: Worker hesitates, waits for instructions; the malfunction worsens, resulting in a near-miss or accident.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Delaying use of the emergency stop in a dangerous situation can result in injury or damage."
   },
@@ -188,7 +198,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator places all tools inside the platform, checks that nothing is overhanging.",
-      failure_video: "Visual: Worker hangs a heavy tool bag over the guardrail; the platform becomes unstable and tips, or a tool falls and nearly hits someone below."
+      failure_video: "Visual: Worker hangs a heavy tool bag over the guardrail; the platform becomes unstable and tips, or a tool falls and nearly hits someone below.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Hanging tools outside the guardrails increases the risk of tipping and falling objects."
   },
@@ -204,7 +216,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator notices a leak, tags the machine out of service, and calls maintenance.",
-      failure_video: "Visual: Worker wipes away the oil, keeps working; later, the hydraulic system fails and the platform collapses unexpectedly."
+      failure_video: "Visual: Worker wipes away the oil, keeps working; later, the hydraulic system fails and the platform collapses unexpectedly.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Ignoring or patching up leaks without proper repair can lead to sudden machine failure or fire hazards."
   },
@@ -220,7 +234,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator goes through the checklist, finds a loose guardrail, fixes it before use.",
-      failure_video: "Visual: Worker asks a coworker if it's fine, starts the machine; a missed defect causes a safety incident."
+      failure_video: "Visual: Worker asks a coworker if it's fine, starts the machine; a missed defect causes a safety incident.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Skipping the required inspection can result in using a damaged or unsafe machine."
   },
@@ -236,7 +252,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Worker waits until the platform is fully lowered, opens the gate, and steps safely onto the ground.",
-      failure_video: "Visual: Worker climbs over the guardrail, slips, and falls from the platform."
+      failure_video: "Visual: Worker climbs over the guardrail, slips, and falls from the platform.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Climbing over guardrails or jumping can result in falls and serious injuries."
   },
@@ -252,7 +270,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator removes a heavy toolbox from the platform, alarm stops, platform resumes normal operation.",
-      failure_video: "Visual: Worker ignores the alarm, repeatedly tries to move the platform; the platform suddenly drops or fails."
+      failure_video: "Visual: Worker ignores the alarm, repeatedly tries to move the platform; the platform suddenly drops or fails.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Ignoring the overload alarm risks equipment failure or collapse."
   },
@@ -268,7 +288,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator drives slowly on a level warehouse floor with the platform raised.",
-      failure_video: "Visual: Worker drives quickly with the platform up, hits a bump, and the machine tips over."
+      failure_video: "Visual: Worker drives quickly with the platform up, hits a bump, and the machine tips over.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Driving fast or on uneven ground with the platform raised is a leading cause of tip-overs."
   },
@@ -284,7 +306,9 @@ const scissorLiftQuestions: Question[] = [
     common_pitfall_index: 1,
     video_assets: {
       success_video: "Visual: Operator plugs in the charger in a ventilated area, checks for sparks, and keeps flammables away.",
-      failure_video: "Visual: Worker charges the battery next to welding sparks; a fire or explosion occurs."
+      failure_video: "Visual: Worker charges the battery next to welding sparks; a fire or explosion occurs.",
+      success_prompt: '',
+      failure_prompt: '',
     },
     explanation: "Charging batteries in unsafe areas or with the wrong charger can cause explosions or fires."
   },

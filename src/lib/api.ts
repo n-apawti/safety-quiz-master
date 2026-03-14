@@ -347,6 +347,8 @@ export const generateQuestionAssets = async (
     video_assets: {
       failure_video: `https://example.com/videos/failure-${Date.now()}.mp4`,
       success_video: `https://example.com/videos/success-${Date.now()}.mp4`,
+      failure_prompt: '',
+      success_prompt: '',
     },
     isNew: false,
   };
