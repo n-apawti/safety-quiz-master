@@ -21,6 +21,7 @@ const AdminLayout = () => {
     { to: `/${companySlug}/admin/employees`, icon: Users, label: 'Employees' },
     { to: `/${companySlug}/admin/materials`, icon: BookOpen, label: 'Materials' },
     { to: `/${companySlug}/admin/quizzes`, icon: FileText, label: 'Quizzes' },
+    { to: `/${companySlug}/admin/settings`, icon: Settings, label: 'Settings' },
   ];
 
   return (
