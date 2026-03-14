@@ -43,6 +43,7 @@ const App = () => (
             {/* Public routes */}
             <Route path="/home" element={<Landing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/accept-invite" element={<AcceptInvite />} />
 
             {/* Super Admin portal */}
             <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
