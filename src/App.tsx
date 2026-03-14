@@ -64,6 +64,26 @@ const App = () => (
               }
             />
             <Route
+              path="/:companySlug/upload"
+              element={
+                <ProtectedRoute>
+                  <CompanyWrapper>
+                    <UploadWizard />
+                  </CompanyWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/:companySlug/editor/:manualId"
+              element={
+                <ProtectedRoute>
+                  <CompanyWrapper>
+                    <QuizEditor />
+                  </CompanyWrapper>
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/:companySlug/quiz/:quizId"
               element={
                 <ProtectedRoute>
