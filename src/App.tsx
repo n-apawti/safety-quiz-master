@@ -43,6 +43,9 @@ const App = () => (
             <Route path="/home" element={<Landing />} />
             <Route path="/login" element={<Login />} />
 
+            {/* Super Admin portal */}
+            <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
+
             {/* Legacy / global admin routes (protected) */}
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/upload" element={<ProtectedRoute><UploadWizard /></ProtectedRoute>} />
